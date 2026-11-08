@@ -863,6 +863,22 @@
   animation: bar-up 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Power / performance bars ------------------------------------------------ */
+
+@keyframes power-bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.power-bar {
+  transform-origin: left center;
+  animation: power-bar-grow 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

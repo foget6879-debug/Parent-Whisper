@@ -1,4 +1,5 @@
-import { CircuitBoard, Check, Cpu, ExternalLink, HardDrive, Laptop, MemoryStick, Monitor, Package, Plus, Tablet } from 'lucide-react';
+import { CircuitBoard, Check, Cpu, ExternalLink, Gauge, HardDrive, Laptop, MemoryStick, Monitor, Package, Plus, Tablet } from 'lucide-react';
+import { getPerformanceProfile } from '@/lib/performance';
 import { CATEGORY_LABELS, formatUah, type Product, type ProductCategory } from '@/lib/products';
 
 interface ProductCardProps {
@@ -22,6 +23,7 @@ const CATEGORY_ICONS: Record<ProductCategory, typeof Laptop> = {
 
 export default function ProductCard({ product, selected, disabled, onToggle, onRemove }: ProductCardProps) {
   const Icon = CATEGORY_ICONS[product.category];
+  const performance = getPerformanceProfile(product);
   const specs = [
     product.cpu,
     product.ramGb !== null ? `${product.ramGb} ГБ оперативної пам’яті` : null,
@@ -47,6 +49,35 @@ export default function ProductCard({ product, selected, disabled, onToggle, onR
 
       <h3 className="mt-5 text-xl font-extrabold leading-snug text-slate-900 dark:text-slate-50">{product.name}</h3>
       <p className="mt-3 font-display text-3xl font-extrabold text-primary-800 dark:text-accent-300">{formatUah(product.priceUah)}</p>
+
+      {performance && (
+        <div className="mt-4">
+          <div className="flex items-end justify-between gap-2 text-sm font-semibold">
+            <span className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+              <Gauge className="h-4 w-4" aria-hidden="true" />
+              Потужність
+              <span className="font-medium text-slate-400 dark:text-slate-500">· {performance.label}</span>
+            </span>
+            <span className="tabular-nums text-primary-800 dark:text-accent-300">
+              {performance.score}
+              <span className="text-slate-400 dark:text-slate-500">/100</span>
+            </span>
+          </div>
+          <div
+            className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200/80 dark:bg-white/10"
+            role="progressbar"
+            aria-label={`Потужність ${product.name}`}
+            aria-valuenow={performance.score}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          >
+            <div
+              className="power-bar h-full rounded-full bg-gradient-to-r from-primary-500 to-accent-400 dark:from-primary-400 dark:to-accent-400"
+              style={{ width: `${performance.score}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {product.description && <p className="mt-3 text-base text-slate-600 dark:text-slate-300">{product.description}</p>}
 

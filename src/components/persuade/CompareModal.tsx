@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 import { AlertTriangle, CheckCircle2, ExternalLink, Sparkles, Trophy, X, Zap } from 'lucide-react';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
+import { getPowerWinners } from '@/lib/performance';
 import { formatUah, type Product } from '@/lib/products';
+import PowerCompare from '@/components/persuade/PowerCompare';
 
 interface CompareModalProps {
   products: Product[];
@@ -320,15 +322,16 @@ export default function CompareModal({ products, onClose }: CompareModalProps) {
   useEscapeKey(onClose);
   const winners = useMemo(() => computeWinners(products, SPEC_ROWS), [products]);
   const compatibility = useMemo(() => checkCompatibility(products), [products]);
+  const powerWinners = useMemo(() => getPowerWinners(products), [products]);
 
   const winCounts = useMemo(() => {
     const counts = new Map<string, number>();
-    const allWinnerLists = [winners.price, ...SPEC_ROWS.map((r) => winners[r.key] ?? [])];
+    const allWinnerLists = [winners.price, powerWinners, ...SPEC_ROWS.map((r) => winners[r.key] ?? [])];
     for (const list of allWinnerLists) {
       for (const id of list) counts.set(id, (counts.get(id) ?? 0) + 1);
     }
     return counts;
-  }, [winners]);
+  }, [winners, powerWinners]);
 
   const topPick = useMemo(() => {
     if (products.length < 2) return null;
@@ -402,6 +405,8 @@ export default function CompareModal({ products, onClose }: CompareModalProps) {
               )}
             </div>
           )}
+
+          <PowerCompare products={products} winnerIds={powerWinners} />
 
           <div className="overflow-x-auto rounded-2xl border border-slate-200/80 dark:border-white/10">
             <table className="w-full min-w-[640px] border-separate border-spacing-0 text-left text-base">
