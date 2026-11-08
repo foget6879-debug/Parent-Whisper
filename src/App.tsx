@@ -15,11 +15,13 @@ import Guarantees from '@/components/persuade/Guarantees';
 import FinalCta from '@/components/persuade/FinalCta';
 import { useTheme } from '@/hooks/useTheme';
 import { useSound } from '@/hooks/useSound';
+import { useAmbience } from '@/hooks/useAmbience';
 import { playSound } from '@/lib/sound';
 
 function App() {
   const { theme, toggle: toggleTheme } = useTheme();
   const { enabled: soundEnabled, toggle: toggleSound } = useSound();
+  const ambience = useAmbience();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const closeSettings = useCallback(() => {
     setSettingsOpen(false);
@@ -46,6 +48,7 @@ function App() {
       <SiteHeader
         theme={theme}
         soundEnabled={soundEnabled}
+        ambience={ambience}
         onToggleTheme={handleToggleTheme}
         onToggleSound={handleToggleSound}
         onOpenSettings={handleOpenSettings}

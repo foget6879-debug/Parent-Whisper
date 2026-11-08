@@ -1,9 +1,11 @@
 import { Laptop, Moon, Settings, Sun, Volume2, VolumeX } from 'lucide-react';
+import AmbienceControl, { type AmbienceControls } from '@/components/persuade/AmbienceControl';
 import type { Theme } from '@/hooks/useTheme';
 
 interface SiteHeaderProps {
   theme: Theme;
   soundEnabled: boolean;
+  ambience: AmbienceControls;
   onToggleTheme: () => void;
   onToggleSound: () => void;
   onOpenSettings: () => void;
@@ -17,7 +19,14 @@ const NAV_ITEMS = [
   { href: '#conversation', label: 'Розмова' },
 ];
 
-export default function SiteHeader({ theme, soundEnabled, onToggleTheme, onToggleSound, onOpenSettings }: SiteHeaderProps) {
+export default function SiteHeader({
+  theme,
+  soundEnabled,
+  ambience,
+  onToggleTheme,
+  onToggleSound,
+  onOpenSettings,
+}: SiteHeaderProps) {
   const isDark = theme === 'dark';
   const controlClass =
     'flex h-11 w-11 items-center justify-center rounded-full border border-slate-200/80 bg-white/70 text-primary-800 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent-400 hover:text-primary-600 dark:border-white/10 dark:bg-white/5 dark:text-accent-300 dark:hover:border-accent-400/60 dark:hover:text-accent-200';
@@ -51,10 +60,12 @@ export default function SiteHeader({ theme, soundEnabled, onToggleTheme, onToggl
           </nav>
 
           <div className="flex items-center gap-2">
+            <AmbienceControl ambience={ambience} />
             <button
               type="button"
               onClick={onToggleSound}
-              aria-label={soundEnabled ? 'Вимкнути звук' : 'Увімкнути звук'}
+              aria-label={soundEnabled ? 'Вимкнути звуки інтерфейсу' : 'Увімкнути звуки інтерфейсу'}
+              title={soundEnabled ? 'Вимкнути звуки інтерфейсу' : 'Увімкнути звуки інтерфейсу'}
               aria-pressed={soundEnabled}
               className={controlClass}
             >

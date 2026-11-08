@@ -14,7 +14,7 @@ type SoundName =
 let context: AudioContext | null = null;
 let enabled = false;
 
-function getContext(): AudioContext | null {
+export function getAudioContext(): AudioContext | null {
   if (typeof window === 'undefined') return null;
   if (!context) {
     const Ctor = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
@@ -85,7 +85,7 @@ const SOUND_PRESETS: Record<SoundName, ToneOptions[]> = {
 
 export function setSoundEnabled(value: boolean): void {
   enabled = value;
-  if (value) getContext();
+  if (value) getAudioContext();
 }
 
 export function isSoundEnabled(): boolean {
@@ -94,12 +94,12 @@ export function isSoundEnabled(): boolean {
 
 export function playSound(name: SoundName): void {
   if (!enabled) return;
-  const ctx = getContext();
+  const ctx = getAudioContext();
   if (!ctx) return;
   for (const tone of SOUND_PRESETS[name]) playTone(ctx, tone);
 }
 
 export function unlockAudio(): void {
-  const ctx = getContext();
+  const ctx = getAudioContext();
   if (ctx && ctx.state === 'suspended') void ctx.resume();
 }
