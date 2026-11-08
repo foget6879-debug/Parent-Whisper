@@ -349,13 +349,13 @@ export default function CompareModal({ products, onClose }: CompareModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-primary-950/70 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
+      <div className="absolute inset-0 bg-primary-950/70 backdrop-blur-sm animate-overlay-in" onClick={onClose} aria-hidden="true" />
 
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="compare-title"
-        className="relative flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-[2rem] border border-white/70 bg-white/95 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-primary-950/95"
+        className="animate-dialog-in relative flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-[2rem] border border-white/70 bg-white/95 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-primary-950/95"
       >
         <div className="relative flex items-center justify-between gap-4 border-b border-slate-200/80 bg-gradient-to-r from-primary-50/80 via-white/60 to-accent-100/50 p-6 dark:border-white/10 dark:from-primary-900/40 dark:via-primary-950/40 dark:to-accent-900/10">
           <div className="flex items-center gap-3">

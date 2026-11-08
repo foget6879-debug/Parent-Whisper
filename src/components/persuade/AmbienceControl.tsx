@@ -86,7 +86,7 @@ export default function AmbienceControl({ ambience }: AmbienceControlProps) {
         <div
           role="dialog"
           aria-label="Фонові звуки"
-          className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[21rem] max-w-[calc(100vw-2rem)] rounded-3xl border border-white/70 bg-white/95 p-5 text-left shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-primary-950/95"
+          className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[21rem] max-w-[calc(100vw-2rem)] animate-popover-in rounded-3xl border border-white/70 bg-white/95 p-5 text-left shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-primary-950/95"
         >
           <div className="flex items-start justify-between gap-3">
             <div>

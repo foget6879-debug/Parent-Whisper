@@ -182,6 +182,40 @@ function playCarPass(ctx: AudioContext, destination: AudioNode, peak: number): v
   };
 }
 
+function playPlaneFlyover(ctx: AudioContext, destination: AudioNode): void {
+  const now = ctx.currentTime;
+  const source = noiseSource(ctx, 'pink');
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.Q.value = 0.8;
+  filter.frequency.setValueAtTime(240, now);
+  filter.frequency.exponentialRampToValueAtTime(900, now + 2.2);
+  filter.frequency.exponentialRampToValueAtTime(300, now + 5.5);
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(0.028, now + 1.8);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 5.4);
+
+  const panner = ctx.createStereoPanner();
+  panner.pan.setValueAtTime(-0.7, now);
+  panner.pan.linearRampToValueAtTime(0.7, now + 5.5);
+
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(panner);
+  panner.connect(destination);
+  source.start(now);
+  source.stop(now + 5.6);
+  source.onended = () => {
+    source.disconnect();
+    filter.disconnect();
+    gain.disconnect();
+    panner.disconnect();
+  };
+}
+
 function playHorn(ctx: AudioContext, destination: AudioNode): void {
   const now = ctx.currentTime + 0.05;
   const gain = ctx.createGain();
@@ -436,6 +470,7 @@ function createScene(ctx: AudioContext, scene: AmbienceScene, destination: Audio
     cancellers.push(every(4000, 9500, () => playCarPass(ctx, output, 0.085)));
     cancellers.push(every(15000, 32000, () => playHorn(ctx, output)));
     cancellers.push(every(6000, 14000, () => playBird(ctx, output)));
+    cancellers.push(every(32000, 62000, () => playPlaneFlyover(ctx, output)));
   }
 
   if (scene === 'rain') {
@@ -467,6 +502,7 @@ function createScene(ctx: AudioContext, scene: AmbienceScene, destination: Audio
     cancellers.push(every(1100, 2400, () => playCricket(ctx, output)));
     cancellers.push(every(14000, 30000, () => playCarPass(ctx, output, 0.035)));
     cancellers.push(every(35000, 75000, () => playOwl(ctx, output)));
+    cancellers.push(every(50000, 92000, () => playPlaneFlyover(ctx, output)));
   }
 
   const stop = () => {

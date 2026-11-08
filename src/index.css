@@ -431,12 +431,228 @@
   opacity: 0.7;
 }
 
+/* Planes crossing the sky -------------------------------------------------- */
+
+.city-planes {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.city-plane {
+  position: absolute;
+  left: 0;
+  color: rgba(49, 46, 129, 0.42);
+  --plane-trail: rgba(99, 102, 241, 0.35);
+  animation-name: plane-cross;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+.dark .city-plane {
+  color: rgba(238, 242, 255, 0.82);
+  --plane-trail: rgba(224, 231, 255, 0.42);
+}
+
+.city-plane.is-reverse {
+  animation-name: plane-cross-reverse;
+}
+
+.city-plane-craft {
+  position: relative;
+  display: block;
+  filter: drop-shadow(0 0 8px rgba(129, 140, 248, 0.35));
+}
+
+.dark .city-plane-craft {
+  filter: drop-shadow(0 0 10px rgba(224, 231, 255, 0.4));
+}
+
+.city-plane.is-reverse .city-plane-craft {
+  transform: scaleX(-1);
+}
+
+.city-plane-body {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.city-plane-wing {
+  opacity: 0.9;
+}
+
+.city-plane-stabilizer {
+  opacity: 0.75;
+}
+
+.city-plane-engine {
+  opacity: 0.65;
+}
+
+.city-plane-trail {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 100%;
+  width: 155px;
+  pointer-events: none;
+}
+
+.city-plane-trail::before,
+.city-plane-trail::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--plane-trail));
+  filter: blur(1.6px);
+}
+
+.city-plane-trail::before {
+  top: 30%;
+  width: 100%;
+}
+
+.city-plane-trail::after {
+  top: 70%;
+  width: 74%;
+  opacity: 0.7;
+}
+
+.city-plane-light {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.city-plane-light--port {
+  fill: #fb7185;
+  filter: drop-shadow(0 0 2.5px rgba(251, 113, 133, 0.95));
+}
+
+.city-plane-light--starboard {
+  fill: #4ade80;
+  filter: drop-shadow(0 0 2.5px rgba(74, 222, 128, 0.95));
+}
+
+.city-plane-light--strobe {
+  fill: #f8fafc;
+  animation: plane-strobe 2.6s linear infinite;
+}
+
+.city-plane-light--beacon {
+  fill: #fda4af;
+  animation: plane-beacon 1.5s ease-in-out infinite;
+}
+
+.city-shooting-star {
+  position: absolute;
+  width: 110px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9));
+  opacity: 0;
+  transform: rotate(-28deg);
+  animation: shooting-star 16s ease-in infinite;
+}
+
+.city-shooting-star--one {
+  top: 16%;
+  left: 64%;
+  animation-delay: 5s;
+}
+
+.city-shooting-star--two {
+  top: 34%;
+  left: 88%;
+  width: 70px;
+  animation-delay: 12s;
+  animation-duration: 23s;
+}
+
 @keyframes city-drift {
   from {
     transform: translate3d(0, 0, 0);
   }
   to {
     transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes plane-cross {
+  from {
+    transform: translate3d(-22vw, 0, 0) rotate(-2.5deg);
+  }
+  50% {
+    transform: translate3d(50vw, -1.4vh, 0) rotate(-2.5deg);
+  }
+  to {
+    transform: translate3d(122vw, -2.8vh, 0) rotate(-2.5deg);
+  }
+}
+
+@keyframes plane-cross-reverse {
+  from {
+    transform: translate3d(122vw, 0, 0) rotate(2.5deg);
+  }
+  50% {
+    transform: translate3d(50vw, -1.4vh, 0) rotate(2.5deg);
+  }
+  to {
+    transform: translate3d(-22vw, -2.8vh, 0) rotate(2.5deg);
+  }
+}
+
+@keyframes plane-strobe {
+  0%,
+  78%,
+  100% {
+    opacity: 0;
+  }
+  79% {
+    opacity: 1;
+  }
+  82% {
+    opacity: 0;
+  }
+  84% {
+    opacity: 0.85;
+  }
+  88% {
+    opacity: 0;
+  }
+}
+
+@keyframes plane-beacon {
+  0%,
+  100% {
+    opacity: 0.18;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes shooting-star {
+  0%,
+  88% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(-28deg);
+  }
+  90% {
+    opacity: 1;
+  }
+  94% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(-260px, 130px, 0) rotate(-28deg);
   }
 }
 
@@ -567,6 +783,84 @@
   50% {
     transform: scaleY(1);
   }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Opening / switching animations                                     */
+/* ------------------------------------------------------------------ */
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes tab-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bar-up {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-overlay-in {
+  animation: overlay-in 0.25s ease-out both;
+}
+
+.animate-dialog-in {
+  animation: dialog-in 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-popover-in {
+  transform-origin: top right;
+  animation: popover-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-tab-panel {
+  animation: tab-panel-in 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-bar-up {
+  animation: bar-up 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

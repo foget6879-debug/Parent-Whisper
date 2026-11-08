@@ -77,6 +77,22 @@ const STARS = Array.from({ length: 90 }, (_, index) => {
   };
 });
 
+interface PlaneConfig {
+  id: string;
+  top: number;
+  width: number;
+  duration: number;
+  delay: number;
+  reverse: boolean;
+}
+
+/** Slow, occasional flights across the skyline. */
+const PLANES: PlaneConfig[] = [
+  { id: 'plane-1', top: 15, width: 64, duration: 58, delay: -18, reverse: false },
+  { id: 'plane-2', top: 28, width: 46, duration: 82, delay: -46, reverse: true },
+  { id: 'plane-3', top: 7, width: 34, duration: 104, delay: -78, reverse: false },
+];
+
 function CityHalf({ buildings }: { buildings: Building[] }) {
   return (
     <div className="city-half" aria-hidden="true">
@@ -128,6 +144,46 @@ export default function CityBackdrop() {
               animationDuration: `${star.duration}s`,
             }}
           />
+        ))}
+        <span className="city-shooting-star city-shooting-star--one" />
+        <span className="city-shooting-star city-shooting-star--two" />
+      </div>
+
+      <div className="city-planes" aria-hidden="true">
+        {PLANES.map((plane) => (
+          <span
+            key={plane.id}
+            className={`city-plane${plane.reverse ? ' is-reverse' : ''}`}
+            style={{
+              top: `${plane.top}%`,
+              width: `${plane.width}px`,
+              animationDuration: `${plane.duration}s`,
+              animationDelay: `${plane.delay}s`,
+            }}
+          >
+            <span className="city-plane-craft">
+              <span className="city-plane-trail" />
+              <svg viewBox="0 0 100 40" className="city-plane-body" aria-hidden="true">
+                <g fill="currentColor">
+                  <path
+                    className="city-plane-fuselage"
+                    d="M96 20C92 16.8 86 15.2 78 15L24 15C16 15.2 10 17 7 20C10 23 16 24.8 24 25L78 25C86 24.8 92 23.2 96 20Z"
+                  />
+                  <path className="city-plane-wing" d="M64 16L34 5L24 5L43 16Z" />
+                  <path className="city-plane-wing" d="M64 24L34 35L24 35L43 24Z" />
+                  <path className="city-plane-stabilizer" d="M22 17L12 10L6 10L14 17Z" />
+                  <path className="city-plane-stabilizer" d="M22 23L12 30L6 30L14 23Z" />
+                  <rect className="city-plane-engine" x="42" y="10.6" width="12" height="3.4" rx="1.7" />
+                  <rect className="city-plane-engine" x="42" y="26" width="12" height="3.4" rx="1.7" />
+                </g>
+
+                <circle className="city-plane-light city-plane-light--port" cx="24" cy="5" r="1.7" />
+                <circle className="city-plane-light city-plane-light--starboard" cx="24" cy="35" r="1.7" />
+                <circle className="city-plane-light city-plane-light--strobe" cx="7" cy="20" r="1.5" />
+                <circle className="city-plane-light city-plane-light--beacon" cx="52" cy="20" r="1.2" />
+              </svg>
+            </span>
+          </span>
         ))}
       </div>
 

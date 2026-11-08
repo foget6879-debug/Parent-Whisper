@@ -10,7 +10,7 @@ interface CompareBarProps {
 
 export default function CompareBar({ products, onRemove, onCompare, onClear }: CompareBarProps) {
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 px-4 pb-4 md:px-6">
+    <div className="fixed inset-x-0 bottom-0 z-40 animate-bar-up px-4 pb-4 md:px-6">
       <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-3 rounded-3xl border border-white/80 bg-white/85 p-4 shadow-card backdrop-blur-xl md:flex-nowrap dark:border-white/10 dark:bg-primary-950/90 dark:shadow-card-dark">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
           <span className="mr-1 text-base font-bold text-slate-900 dark:text-slate-100">Обрано: {products.length} з 3</span>

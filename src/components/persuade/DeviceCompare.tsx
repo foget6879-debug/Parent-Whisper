@@ -127,7 +127,7 @@ export default function DeviceCompare() {
             type="button"
             onClick={() => setCategory(filter.value)}
             aria-pressed={category === filter.value}
-            className={`rounded-full px-5 py-2.5 text-base font-semibold transition-all ${
+            className={`rounded-full px-5 py-2.5 text-base font-semibold transition-all active:scale-95 ${
               category === filter.value
                 ? 'bg-gradient-to-r from-primary-600 to-primary-800 text-white shadow-lg shadow-primary-900/25 dark:from-accent-400 dark:to-accent-600 dark:text-primary-950'
                 : 'bg-white/70 text-primary-800 ring-1 ring-slate-200/80 hover:bg-white hover:ring-accent-300 dark:bg-white/5 dark:text-slate-100 dark:ring-white/10 dark:hover:bg-white/10'
@@ -168,7 +168,7 @@ export default function DeviceCompare() {
       )}
 
       {visible.length > 0 && (
-        <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div key={category} className="mt-10 grid animate-tab-panel gap-6 md:grid-cols-2 lg:grid-cols-3">
           {visible.map((product, index) => (
             <Reveal key={product.id} delay={(index % 3) * 100} className="h-full">
               <ProductCard
