@@ -5,6 +5,7 @@ import CompareBar from '@/components/persuade/CompareBar';
 import CompareModal from '@/components/persuade/CompareModal';
 import ProductCard from '@/components/persuade/ProductCard';
 import Reveal from '@/components/persuade/Reveal';
+import { useAnimatedPresence } from '@/hooks/useAnimatedPresence';
 import { useCustomProducts } from '@/hooks/useCustomProducts';
 import { useProducts } from '@/hooks/useProducts';
 import { CATEGORY_LABELS, type Product, type ProductCategory } from '@/lib/products';
@@ -58,6 +59,7 @@ export default function DeviceCompare() {
     .filter((product): product is Product => Boolean(product));
   const selectionFull = selectedIds.length >= MAX_COMPARE;
   const lockedCategory = selected[0]?.category ?? null;
+  const compareBar = useAnimatedPresence(selected.length > 0 && !compareOpen);
   const isDisabled = (product: Product) =>
     !selectedIds.includes(product.id) &&
     (selectionFull || (lockedCategory !== null && product.category !== lockedCategory));
@@ -83,6 +85,9 @@ export default function DeviceCompare() {
 
   const saveCustomItem = (product: Product) => {
     addCustom(product);
+    setCategory(product.category);
+    setQuery('');
+    playSound('success');
     setAddOpen(false);
   };
 
@@ -116,7 +121,12 @@ export default function DeviceCompare() {
           className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-primary-600 to-primary-800 px-5 py-3 text-base font-bold text-white shadow-lg shadow-primary-900/25 transition-all hover:-translate-y-0.5 hover:from-primary-500 hover:to-primary-700 dark:from-accent-400 dark:to-accent-600 dark:text-primary-950 dark:shadow-accent-500/20 dark:hover:from-accent-300 dark:hover:to-accent-500"
         >
           <Plus className="h-5 w-5" aria-hidden="true" />
-          Додати свій варіант
+          Додати свій прилад
+          {customItems.length > 0 && (
+            <span className="rounded-full bg-white/20 px-2 py-0.5 text-sm font-extrabold tabular-nums dark:bg-primary-950/25">
+              {customItems.length}
+            </span>
+          )}
         </button>
       </div>
 
@@ -160,11 +170,21 @@ export default function DeviceCompare() {
       )}
 
       {visible.length === 0 && state.status !== 'loading' && (
-        <p className="mt-12 text-lg text-slate-600 dark:text-slate-300">
-          {normalizedQuery
-            ? 'Нічого не знайдено. Спробуйте інші слова або додайте свій варіант.'
-            : 'У цій категорії поки немає пристроїв.'}
-        </p>
+        <div className="mt-12 flex flex-wrap items-center gap-4 rounded-3xl border border-dashed border-slate-300/90 bg-white/50 p-6 dark:border-white/15 dark:bg-white/[0.03]">
+          <p className="flex-1 text-lg text-slate-600 dark:text-slate-300">
+            {normalizedQuery
+              ? 'Нічого не знайдено. Спробуйте інші слова або додайте свій прилад.'
+              : 'У цій категорії поки немає пристроїв у каталозі — ви можете додати власний варіант.'}
+          </p>
+          <button
+            type="button"
+            onClick={() => { playSound('open'); setAddOpen(true); }}
+            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-accent-300 to-accent-500 px-5 py-3 text-base font-extrabold text-primary-950 shadow-lg shadow-accent-500/20 transition-all hover:-translate-y-0.5"
+          >
+            <Plus className="h-5 w-5" aria-hidden="true" />
+            Додати прилад
+          </button>
+        </div>
       )}
 
       {visible.length > 0 && (
@@ -189,9 +209,10 @@ export default function DeviceCompare() {
         </p>
       )}
 
-      {selected.length > 0 && !compareOpen && (
+      {compareBar.rendered && (
         <CompareBar
           products={selected}
+          leaving={compareBar.leaving}
           onRemove={remove}
           onClear={() => setSelectedIds([])}
           onCompare={() => { playSound('success'); setCompareOpen(true); }}
@@ -199,7 +220,13 @@ export default function DeviceCompare() {
       )}
 
       {compareOpen && selected.length >= 2 && <CompareModal products={selected} onClose={closeCompare} />}
-      {addOpen && <AddCustomProductModal onSave={saveCustomItem} onClose={closeAdd} />}
+      {addOpen && (
+        <AddCustomProductModal
+          onSave={saveCustomItem}
+          onClose={closeAdd}
+          defaultCategory={category === 'all' ? null : category}
+        />
+      )}
     </section>
   );
 }

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo, useRef, useState, type AnimationEvent } from 'react';
 import { AlertTriangle, CheckCircle2, ExternalLink, Sparkles, Trophy, X, Zap } from 'lucide-react';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { getPowerWinners } from '@/lib/performance';
@@ -319,7 +319,16 @@ function winnerBadgeClass(highlight: boolean): string {
 }
 
 export default function CompareModal({ products, onClose }: CompareModalProps) {
-  useEscapeKey(onClose);
+  const [leaving, setLeaving] = useState(false);
+  const closedRef = useRef(false);
+  const requestClose = useCallback(() => setLeaving(true), []);
+  useEscapeKey(requestClose);
+
+  const handleAnimationEnd = (event: AnimationEvent<HTMLDivElement>) => {
+    if (!leaving || closedRef.current || event.target !== event.currentTarget) return;
+    closedRef.current = true;
+    onClose();
+  };
   const winners = useMemo(() => computeWinners(products, SPEC_ROWS), [products]);
   const compatibility = useMemo(() => checkCompatibility(products), [products]);
   const powerWinners = useMemo(() => getPowerWinners(products), [products]);
@@ -351,14 +360,21 @@ export default function CompareModal({ products, onClose }: CompareModalProps) {
   const priceSpread = Math.max(...products.map((p) => p.priceUah)) - Math.min(...products.map((p) => p.priceUah));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-primary-950/70 backdrop-blur-sm animate-overlay-in" onClick={onClose} aria-hidden="true" />
+    <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${leaving ? 'pointer-events-none' : ''}`}>
+      <div
+        className={`absolute inset-0 bg-primary-950/70 backdrop-blur-sm ${leaving ? 'animate-overlay-out' : 'animate-overlay-in'}`}
+        onClick={requestClose}
+        aria-hidden="true"
+      />
 
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="compare-title"
-        className="animate-dialog-in relative flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-[2rem] border border-white/70 bg-white/95 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-primary-950/95"
+        onAnimationEnd={handleAnimationEnd}
+        className={`relative flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-[2rem] border border-white/70 bg-white/95 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-primary-950/95 ${
+          leaving ? 'animate-slide-dialog-out' : 'animate-slide-dialog-in'
+        }`}
       >
         <div className="relative flex items-center justify-between gap-4 border-b border-slate-200/80 bg-gradient-to-r from-primary-50/80 via-white/60 to-accent-100/50 p-6 dark:border-white/10 dark:from-primary-900/40 dark:via-primary-950/40 dark:to-accent-900/10">
           <div className="flex items-center gap-3">
@@ -376,7 +392,7 @@ export default function CompareModal({ products, onClose }: CompareModalProps) {
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={requestClose}
             aria-label="Закрити порівняння"
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200/80 bg-white/60 text-slate-600 transition-colors hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10"
           >

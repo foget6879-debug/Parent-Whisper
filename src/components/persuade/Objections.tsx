@@ -80,10 +80,17 @@ export default function Objections() {
                   id={panelId}
                   role="region"
                   aria-labelledby={buttonId}
+                  aria-hidden={!isOpen}
                   className={`grid transition-[grid-template-rows] duration-300 ease-out ${isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
                 >
                   <div className="overflow-hidden">
-                    <p className="px-6 pb-6 text-slate-600 dark:text-slate-300">{item.answer}</p>
+                    <p
+                      className={`px-6 pb-6 text-slate-600 transition-all duration-300 ease-out dark:text-slate-300 ${
+                        isOpen ? 'translate-y-0 opacity-100 delay-[40ms]' : '-translate-y-2 opacity-0'
+                      }`}
+                    >
+                      {item.answer}
+                    </p>
                   </div>
                 </div>
               </div>

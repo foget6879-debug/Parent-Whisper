@@ -32,7 +32,8 @@ export default function ProductCard({ product, selected, disabled, onToggle, onR
 
   return (
     <article
-      className={`group relative flex h-full flex-col overflow-hidden rounded-3xl border p-6 transition-all duration-300 ${
+      data-ripple
+      className={`group relative flex h-full cursor-default flex-col overflow-hidden rounded-3xl border p-6 transition-all duration-300 ${
         selected
           ? 'border-accent-400 bg-gradient-to-br from-accent-100/80 via-white/70 to-white/60 shadow-xl shadow-accent-500/20 dark:border-accent-400/60 dark:from-accent-500/10 dark:via-white/[0.04] dark:to-white/[0.02]'
           : 'glass border-transparent hover:-translate-y-1 hover:border-accent-300/60 dark:hover:border-accent-400/30'

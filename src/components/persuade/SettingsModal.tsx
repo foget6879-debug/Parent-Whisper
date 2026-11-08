@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type AnimationEvent, type FormEvent } from 'react';
 import { KeyRound, X } from 'lucide-react';
 import ConnectionTest from '@/components/persuade/ConnectionTest';
 import { useAiSettings, type AiSettings } from '@/hooks/useAiSettings';
@@ -25,12 +25,21 @@ function formatPerMillion(perToken: number): string {
 }
 
 export default function SettingsModal({ onClose }: SettingsModalProps) {
+  const [leaving, setLeaving] = useState(false);
+  const closedRef = useRef(false);
+  const requestClose = useCallback(() => setLeaving(true), []);
+  const handleAnimationEnd = (event: AnimationEvent<HTMLDivElement>) => {
+    if (!leaving || closedRef.current || event.target !== event.currentTarget) return;
+    closedRef.current = true;
+    onClose();
+  };
+
   const { settings, saveSettings, clearApiKey } = useAiSettings();
   const [draft, setDraft] = useState<AiSettings>(settings);
   const [status, setStatus] = useState<'idle' | 'saved' | 'cleared'>('idle');
   const [models, setModels] = useState<ModelsState>({ status: 'loading' });
 
-  useEscapeKey(onClose);
+  useEscapeKey(requestClose);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -72,14 +81,21 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
   const maxReplyCost = pricing ? draft.maxTokens * pricing.completionPerToken : null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-primary-950/70 backdrop-blur-sm animate-overlay-in" onClick={onClose} aria-hidden="true" />
+    <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${leaving ? 'pointer-events-none' : ''}`}>
+      <div
+        className={`absolute inset-0 bg-primary-950/70 backdrop-blur-sm ${leaving ? 'animate-overlay-out' : 'animate-overlay-in'}`}
+        onClick={requestClose}
+        aria-hidden="true"
+      />
 
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="settings-title"
-        className="animate-dialog-in relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2rem] border border-white/70 bg-white/95 p-6 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-primary-950/95 md:p-8"
+        onAnimationEnd={handleAnimationEnd}
+        className={`relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2rem] border border-white/70 bg-white/95 p-6 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-primary-950/95 md:p-8 ${
+          leaving ? 'animate-slide-dialog-out' : 'animate-slide-dialog-in'
+        }`}
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -92,7 +108,7 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={requestClose}
             aria-label="Закрити налаштування"
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200/80 bg-white/60 text-slate-600 transition-colors hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10"
           >

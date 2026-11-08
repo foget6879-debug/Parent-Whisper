@@ -73,14 +73,14 @@ export default function RippleButton({
 
   if (href) {
     return (
-      <a href={href} onClick={handleClick} onMouseEnter={handleHover} className={classes}>
+      <a href={href} onClick={handleClick} onMouseEnter={handleHover} className={classes} data-no-ripple="true">
         {content}
       </a>
     );
   }
 
   return (
-    <button type="button" onClick={handleClick} onMouseEnter={handleHover} className={classes}>
+    <button type="button" onClick={handleClick} onMouseEnter={handleHover} className={classes} data-no-ripple="true">
       {content}
     </button>
   );

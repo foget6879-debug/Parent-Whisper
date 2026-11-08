@@ -75,11 +75,22 @@
     border: 3px solid #6366f1;
     box-shadow: 0 4px 14px rgba(49, 46, 129, 0.35);
     cursor: pointer;
-    transition: transform 0.15s ease;
+    transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease, border-color 0.18s ease;
   }
 
   input[type='range']::-webkit-slider-thumb:hover {
-    transform: scale(1.12);
+    transform: scale(1.15);
+    box-shadow: 0 6px 18px rgba(49, 46, 129, 0.4);
+  }
+
+  input[type='range']:active::-webkit-slider-thumb {
+    transform: scale(1.22);
+    border-color: #84cc16;
+    box-shadow: 0 0 0 8px rgba(132, 204, 22, 0.2), 0 6px 18px rgba(49, 46, 129, 0.4);
+  }
+
+  input[type='range']:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.22), 0 4px 14px rgba(49, 46, 129, 0.35);
   }
 
   input[type='range']::-moz-range-thumb {
@@ -90,6 +101,22 @@
     border: 3px solid #6366f1;
     box-shadow: 0 4px 14px rgba(49, 46, 129, 0.35);
     cursor: pointer;
+    transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease, border-color 0.18s ease;
+  }
+
+  input[type='range']::-moz-range-thumb:hover {
+    transform: scale(1.15);
+  }
+
+  input[type='range']:active::-moz-range-thumb {
+    transform: scale(1.22);
+    border-color: #84cc16;
+  }
+
+  .dark input[type='range']:active::-webkit-slider-thumb,
+  .dark input[type='range']:active::-moz-range-thumb {
+    border-color: #a3e635;
+    box-shadow: 0 0 0 8px rgba(163, 230, 53, 0.18);
   }
 
   .dark input[type='range']::-webkit-slider-thumb {
@@ -738,6 +765,50 @@
   animation: ripple 0.6s ease-out forwards;
 }
 
+/* Global ripple (moderate, pointer-positioned) -------------------------- */
+
+.ripple-surface {
+  overflow: clip;
+  overflow: hidden;
+}
+
+.ripple-wave {
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.34);
+  background: color-mix(in srgb, currentColor 22%, white 14%);
+  transform: scale(0);
+  animation: ripple-wave 0.62s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.dark .ripple-wave {
+  background: rgba(255, 255, 255, 0.24);
+  background: color-mix(in srgb, white 18%, currentColor 12%);
+}
+
+@keyframes ripple-wave {
+  from {
+    transform: scale(0);
+    opacity: 0.55;
+  }
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* Focus / input micro-interactions (moderate) --------------------------- */
+
+:where(input:not([type='range']):not([type='checkbox']):not([type='radio']), textarea, select) {
+  transition: border-color 0.2s ease, box-shadow 0.25s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+:where(input:not([type='range']):not([type='checkbox']):not([type='radio']), textarea, select):focus {
+  transform: translateY(-1px);
+}
+
 .animate-tilt-spin {
   animation: tilt-spin 18s linear infinite;
 }
@@ -798,6 +869,15 @@
   }
 }
 
+@keyframes overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 @keyframes dialog-in {
   from {
     opacity: 0;
@@ -806,6 +886,28 @@
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slide-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-dialog-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(24px);
   }
 }
 
@@ -842,12 +944,35 @@
   }
 }
 
+@keyframes bar-down {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+}
+
 .animate-overlay-in {
   animation: overlay-in 0.25s ease-out both;
 }
 
+.animate-overlay-out {
+  animation: overlay-out 0.22s ease-in both;
+}
+
 .animate-dialog-in {
   animation: dialog-in 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-slide-dialog-in {
+  animation: slide-dialog-in 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-slide-dialog-out {
+  animation: slide-dialog-out 0.26s cubic-bezier(0.4, 0, 1, 1) both;
 }
 
 .animate-popover-in {
@@ -861,6 +986,10 @@
 
 .animate-bar-up {
   animation: bar-up 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-bar-down {
+  animation: bar-down 0.26s cubic-bezier(0.4, 0, 1, 1) both;
 }
 
 /* Power / performance bars ------------------------------------------------ */
