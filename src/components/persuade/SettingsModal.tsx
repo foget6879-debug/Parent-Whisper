@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type AnimationEvent, type FormEvent } from 'react';
-import { KeyRound, X } from 'lucide-react';
+import { Building2, Check, Image, KeyRound, Sparkles, Stars, X } from 'lucide-react';
 import ConnectionTest from '@/components/persuade/ConnectionTest';
+import { BACKGROUND_OPTIONS, type BackgroundId } from '@/hooks/useBackground';
 import { useAiSettings, type AiSettings } from '@/hooks/useAiSettings';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { fetchModels, formatUsd, type OpenRouterModel } from '@/lib/openRouter';
+import { playSound } from '@/lib/sound';
 import { sanitizeApiKey, validateApiKey } from '@/lib/validateApiKey';
 
 interface SettingsModalProps {
   onClose: () => void;
+  background: BackgroundId;
+  onChangeBackground: (id: BackgroundId) => void;
 }
 
 const MAX_TOKENS_LIMIT = 8192;
@@ -24,7 +28,13 @@ function formatPerMillion(perToken: number): string {
   return `$${(perToken * 1_000_000).toFixed(2)}`;
 }
 
-export default function SettingsModal({ onClose }: SettingsModalProps) {
+const BACKGROUND_ICONS: Record<BackgroundId, typeof Image> = {
+  city: Building2,
+  gradient: Sparkles,
+  space: Stars,
+};
+
+export default function SettingsModal({ onClose, background, onChangeBackground }: SettingsModalProps) {
   const [leaving, setLeaving] = useState(false);
   const closedRef = useRef(false);
   const requestClose = useCallback(() => setLeaving(true), []);
@@ -100,10 +110,10 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-600 to-primary-900 text-accent-300 shadow-lg shadow-primary-900/25">
-              <KeyRound className="h-5 w-5" aria-hidden="true" />
+              <Image className="h-5 w-5" aria-hidden="true" />
             </span>
             <h2 id="settings-title" className="text-2xl font-extrabold text-primary-900 dark:text-slate-50">
-              Налаштування AI
+              Налаштування
             </h2>
           </div>
           <button
@@ -114,6 +124,56 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
           >
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
+        </div>
+
+        <section className="mt-6" aria-labelledby="background-settings-title">
+          <h3 id="background-settings-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            Фон сторінки
+          </h3>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Оберіть вигляд тла. Вибір зберігається в цьому браузері.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3" role="radiogroup" aria-label="Фон сторінки">
+            {BACKGROUND_OPTIONS.map((option) => {
+              const Icon = BACKGROUND_ICONS[option.id];
+              const selected = background === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  onClick={() => {
+                    onChangeBackground(option.id);
+                    playSound('select');
+                  }}
+                  className={`relative rounded-2xl border p-4 text-left transition-all hover:-translate-y-0.5 ${
+                    selected
+                      ? 'border-accent-400/80 bg-gradient-to-br from-primary-700 to-primary-900 text-white shadow-lg shadow-primary-900/25'
+                      : 'border-slate-200/80 bg-white/70 text-slate-700 hover:border-primary-300 hover:bg-primary-50/70 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:border-accent-400/40 dark:hover:bg-white/10'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <Icon className={`h-5 w-5 ${selected ? 'text-accent-300' : 'text-primary-600 dark:text-accent-300'}`} aria-hidden="true" />
+                    {selected && <Check className="h-4 w-4 text-accent-300" aria-hidden="true" />}
+                  </div>
+                  <span className="mt-3 block text-base font-bold">{option.label}</span>
+                  <span className={`mt-1 block text-sm leading-snug ${selected ? 'text-primary-100' : 'text-slate-500 dark:text-slate-400'}`}>
+                    {option.description}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        <div className="mt-8 border-t border-slate-200/80 pt-6 dark:border-white/10">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-100 text-primary-700 dark:bg-white/10 dark:text-accent-300">
+              <KeyRound className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <h3 className="text-xl font-extrabold text-primary-900 dark:text-slate-50">Налаштування AI</h3>
+          </div>
         </div>
 
         <form onSubmit={handleSave} className="mt-6 space-y-6">

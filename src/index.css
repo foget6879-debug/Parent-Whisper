@@ -1052,6 +1052,227 @@
   animation: power-bar-grow 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Animated backdrops ------------------------------------------------------ */
+
+@keyframes bg-blob-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(4vw, -3vh, 0) scale(1.06);
+  }
+  66% {
+    transform: translate3d(-3vw, 4vh, 0) scale(0.96);
+  }
+}
+
+@keyframes bg-blob-drift-alt {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(-5vw, 3vh, 0) scale(0.95);
+  }
+  66% {
+    transform: translate3d(3vw, -4vh, 0) scale(1.05);
+  }
+}
+
+.bg-blob-drift {
+  animation: bg-blob-drift 28s ease-in-out infinite;
+  will-change: transform;
+}
+
+.bg-blob-drift-alt {
+  animation: bg-blob-drift-alt 32s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes bg-float-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.25;
+  }
+  25% {
+    transform: translate3d(18px, -26px, 0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate3d(-8px, -48px, 0);
+    opacity: 0.35;
+  }
+  75% {
+    transform: translate3d(-22px, -18px, 0);
+    opacity: 0.55;
+  }
+}
+
+@keyframes bg-float-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.2;
+  }
+  33% {
+    transform: translate3d(-20px, -34px, 0);
+    opacity: 0.55;
+  }
+  66% {
+    transform: translate3d(14px, -60px, 0);
+    opacity: 0.3;
+  }
+}
+
+@keyframes bg-float-c {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate3d(10px, -40px, 0);
+    opacity: 0.65;
+  }
+}
+
+.bg-float-a {
+  animation: bg-float-a ease-in-out infinite;
+}
+
+.bg-float-b {
+  animation: bg-float-b ease-in-out infinite;
+}
+
+.bg-float-c {
+  animation: bg-float-c ease-in-out infinite;
+}
+
+@keyframes bg-nebula-drift {
+  0%,
+  100% {
+    transform: translate3d(-50%, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(calc(-50% + 3vw), -2vh, 0) scale(1.08);
+  }
+}
+
+@keyframes bg-nebula-drift-alt {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-4vw, 3vh, 0) scale(1.06);
+  }
+}
+
+.bg-nebula-drift {
+  animation: bg-nebula-drift 36s ease-in-out infinite;
+  will-change: transform;
+}
+
+.bg-nebula-drift-alt {
+  animation: bg-nebula-drift-alt 40s ease-in-out infinite;
+  will-change: transform;
+}
+
+.bg-shooting-star {
+  position: absolute;
+  width: 120px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95));
+  opacity: 0;
+  transform: rotate(-28deg);
+  animation: bg-shooting-star 18s ease-in infinite;
+  will-change: transform, opacity;
+}
+
+.bg-shooting-star--a {
+  top: 14%;
+  left: 72%;
+  animation-delay: 3s;
+}
+
+.bg-shooting-star--b {
+  top: 26%;
+  left: 88%;
+  width: 80px;
+  animation-delay: 11s;
+  animation-duration: 24s;
+}
+
+.bg-shooting-star--c {
+  top: 8%;
+  left: 46%;
+  width: 100px;
+  animation-delay: 19s;
+  animation-duration: 21s;
+}
+
+@keyframes bg-shooting-star {
+  0%,
+  86% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(-28deg);
+  }
+  88% {
+    opacity: 1;
+  }
+  92% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(-280px, 140px, 0) rotate(-28deg);
+  }
+}
+
+.city-motes {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.city-mote {
+  position: absolute;
+  border-radius: 999px;
+  background: rgba(165, 180, 252, 0.7);
+  box-shadow: 0 0 10px 2px rgba(165, 180, 252, 0.35);
+  animation: city-mote-drift ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+:root:not(.dark) .city-mote {
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 0 10px 2px rgba(148, 163, 184, 0.25);
+}
+
+@keyframes city-mote-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.15;
+  }
+  25% {
+    transform: translate3d(12px, -18px, 0);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate3d(-6px, -34px, 0);
+    opacity: 0.3;
+  }
+  75% {
+    transform: translate3d(-14px, -12px, 0);
+    opacity: 0.5;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

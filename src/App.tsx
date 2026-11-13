@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import CityBackdrop from '@/components/persuade/CityBackdrop';
+import Backdrop from '@/components/persuade/Backdrop';
 import SiteHeader from '@/components/persuade/SiteHeader';
 import SettingsModal from '@/components/persuade/SettingsModal';
 import Hero from '@/components/persuade/Hero';
@@ -13,6 +13,7 @@ import DeviceCompare from '@/components/persuade/DeviceCompare';
 import Objections from '@/components/persuade/Objections';
 import Guarantees from '@/components/persuade/Guarantees';
 import FinalCta from '@/components/persuade/FinalCta';
+import { useBackground } from '@/hooks/useBackground';
 import { useTheme } from '@/hooks/useTheme';
 import { useSound } from '@/hooks/useSound';
 import { useAmbience } from '@/hooks/useAmbience';
@@ -22,6 +23,7 @@ function App() {
   const { theme, toggle: toggleTheme } = useTheme();
   const { enabled: soundEnabled, toggle: toggleSound } = useSound();
   const ambience = useAmbience();
+  const { background, setBackground } = useBackground();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const closeSettings = useCallback(() => {
     setSettingsOpen(false);
@@ -44,7 +46,7 @@ function App() {
 
   return (
     <div className="relative min-h-screen">
-      <CityBackdrop />
+      <Backdrop background={background} />
       <SiteHeader
         theme={theme}
         soundEnabled={soundEnabled}
@@ -76,7 +78,9 @@ function App() {
           </p>
         </div>
       </footer>
-      {settingsOpen && <SettingsModal onClose={closeSettings} />}
+      {settingsOpen && (
+        <SettingsModal onClose={closeSettings} background={background} onChangeBackground={setBackground} />
+      )}
     </div>
   );
 }

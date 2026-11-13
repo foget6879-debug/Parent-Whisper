@@ -93,6 +93,26 @@ const PLANES: PlaneConfig[] = [
   { id: 'plane-3', top: 7, width: 34, duration: 104, delay: -78, reverse: false },
 ];
 
+interface MoteConfig {
+  id: string;
+  left: number;
+  top: number;
+  size: number;
+  duration: number;
+  delay: number;
+}
+
+const MOTES: MoteConfig[] = [
+  { id: 'm1', left: 8, top: 22, size: 4, duration: 14, delay: -3 },
+  { id: 'm2', left: 22, top: 38, size: 3, duration: 18, delay: -9 },
+  { id: 'm3', left: 41, top: 18, size: 5, duration: 16, delay: -5 },
+  { id: 'm4', left: 63, top: 30, size: 3, duration: 20, delay: -12 },
+  { id: 'm5', left: 78, top: 16, size: 4, duration: 15, delay: -7 },
+  { id: 'm6', left: 88, top: 42, size: 3, duration: 19, delay: -15 },
+  { id: 'm7', left: 15, top: 52, size: 3, duration: 22, delay: -1 },
+  { id: 'm8', left: 55, top: 46, size: 4, duration: 17, delay: -10 },
+];
+
 function CityHalf({ buildings }: { buildings: Building[] }) {
   return (
     <div className="city-half" aria-hidden="true">
@@ -191,6 +211,23 @@ export default function CityBackdrop() {
         <span className="city-cloud city-cloud--one" />
         <span className="city-cloud city-cloud--two" />
         <span className="city-cloud city-cloud--three" />
+      </div>
+
+      <div className="city-motes" aria-hidden="true">
+        {MOTES.map((mote) => (
+          <span
+            key={mote.id}
+            className="city-mote"
+            style={{
+              left: `${mote.left}%`,
+              top: `${mote.top}%`,
+              width: `${mote.size}px`,
+              height: `${mote.size}px`,
+              animationDuration: `${mote.duration}s`,
+              animationDelay: `${mote.delay}s`,
+            }}
+          />
+        ))}
       </div>
 
       {layers.map(({ config, buildings }) => (
