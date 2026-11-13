@@ -18,13 +18,13 @@ export default function Hero() {
       <div className="pointer-events-none absolute -bottom-32 left-[-8rem] h-[28rem] w-[28rem] rounded-full bg-primary-300/40 blur-3xl dark:bg-primary-600/25" aria-hidden="true" />
       <div className="pointer-events-none absolute left-1/2 top-10 h-64 w-64 -translate-x-1/2 rounded-full bg-violet-400/20 blur-3xl dark:bg-violet-600/20" aria-hidden="true" />
 
-      <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-6 pb-20 pt-14 md:grid-cols-[1.05fr_0.95fr] md:pb-28 md:pt-24">
+      <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 pb-16 pt-10 sm:gap-14 sm:px-6 sm:pb-20 sm:pt-14 md:grid-cols-[1.05fr_0.95fr] md:pb-28 md:pt-24">
         <Reveal>
           <p className="eyebrow">Спокійна розмова для всієї родини</p>
-          <h1 className="mt-6 font-display text-4xl font-extrabold leading-[1.05] text-primary-900 md:text-6xl dark:text-slate-50">
+          <h1 className="mt-6 font-display text-3xl font-extrabold leading-[1.08] text-primary-900 sm:text-4xl md:text-6xl dark:text-slate-50">
             Мамо, тату, давайте поговоримо про <span className="text-gradient">швидший ноутбук</span>
           </h1>
-          <p className="mt-6 max-w-xl text-xl text-slate-600 dark:text-slate-300">
+          <p className="mt-5 max-w-xl text-lg text-slate-600 sm:mt-6 sm:text-xl dark:text-slate-300">
             Невелике оновлення за {UPGRADE_PRICES.optimal.toLocaleString('uk-UA')} грн зробить щоденну роботу спокійнішою,
             і ноутбук ще довго служитиме нам.
           </p>

@@ -92,7 +92,7 @@ export default function DeviceCompare() {
   };
 
   return (
-    <section id="compare" className={`mx-auto max-w-6xl px-6 py-20 md:py-28 ${selected.length > 0 ? 'pb-40' : ''}`}>
+    <section id="compare" className={`mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 md:py-28 ${selected.length > 0 ? 'pb-40' : ''}`}>
       <Reveal>
         <p className="eyebrow">Порівняння</p>
         <h2 className="mt-4 max-w-3xl text-3xl font-extrabold text-primary-900 md:text-4xl dark:text-slate-50">

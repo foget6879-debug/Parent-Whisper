@@ -376,7 +376,7 @@ export default function CompareModal({ products, onClose }: CompareModalProps) {
           leaving ? 'animate-slide-dialog-out' : 'animate-slide-dialog-in'
         }`}
       >
-        <div className="relative flex items-center justify-between gap-4 border-b border-slate-200/80 bg-gradient-to-r from-primary-50/80 via-white/60 to-accent-100/50 p-6 dark:border-white/10 dark:from-primary-900/40 dark:via-primary-950/40 dark:to-accent-900/10">
+        <div className="relative flex items-center justify-between gap-4 border-b border-slate-200/80 bg-gradient-to-r from-primary-50/80 via-white/60 to-accent-100/50 p-4 sm:p-6 dark:border-white/10 dark:from-primary-900/40 dark:via-primary-950/40 dark:to-accent-900/10">
           <div className="flex items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-600 to-primary-900 text-accent-300 shadow-lg shadow-primary-900/25">
               <Sparkles className="h-5 w-5" aria-hidden="true" />
@@ -400,7 +400,7 @@ export default function CompareModal({ products, onClose }: CompareModalProps) {
           </button>
         </div>
 
-        <div className="overflow-auto p-6">
+        <div className="overflow-auto p-4 sm:p-6">
           {bestValue && (
             <div className="mb-6 flex flex-wrap items-center gap-4 rounded-2xl border border-accent-300/60 bg-gradient-to-r from-accent-100/80 to-white/50 px-5 py-4 dark:border-accent-400/20 dark:from-accent-500/15 dark:to-transparent">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent-300 to-accent-500 text-primary-950 shadow-lg shadow-accent-500/25">

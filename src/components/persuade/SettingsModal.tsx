@@ -103,7 +103,7 @@ export default function SettingsModal({ onClose, background, onChangeBackground 
         aria-modal="true"
         aria-labelledby="settings-title"
         onAnimationEnd={handleAnimationEnd}
-        className={`relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2rem] border border-white/70 bg-white/95 p-6 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-primary-950/95 md:p-8 ${
+        className={`relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2rem] border border-white/70 bg-white/95 p-4 shadow-2xl sm:p-6 backdrop-blur-xl dark:border-white/10 dark:bg-primary-950/95 md:p-8 ${
           leaving ? 'animate-slide-dialog-out' : 'animate-slide-dialog-in'
         }`}
       >

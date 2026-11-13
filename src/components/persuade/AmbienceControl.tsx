@@ -38,7 +38,7 @@ const SCENE_ICONS: Record<AmbienceScene, LucideIcon> = {
 };
 
 const controlClass =
-  'relative flex h-11 w-11 items-center justify-center rounded-full border border-slate-200/80 bg-white/70 text-primary-800 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent-400 hover:text-primary-600 dark:border-white/10 dark:bg-white/5 dark:text-accent-300 dark:hover:border-accent-400/60 dark:hover:text-accent-200';
+  'relative flex h-10 w-10 items-center justify-center rounded-full border border-slate-200/80 bg-white/70 text-primary-800 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent-400 hover:text-primary-600 sm:h-11 sm:w-11 dark:border-white/10 dark:bg-white/5 dark:text-accent-300 dark:hover:border-accent-400/60 dark:hover:text-accent-200';
 
 export default function AmbienceControl({ ambience }: AmbienceControlProps) {
   const { scene, enabled, active, volume, setScene, setVolume, toggle } = ambience;

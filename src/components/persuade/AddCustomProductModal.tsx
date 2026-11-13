@@ -251,7 +251,7 @@ export default function AddCustomProductModal({ onSave, onClose, defaultCategory
           leaving ? 'animate-slide-dialog-out' : 'animate-slide-dialog-in'
         }`}
       >
-        <div className="flex items-center justify-between gap-4 border-b border-slate-200/80 p-6 dark:border-white/10">
+        <div className="flex items-center justify-between gap-4 border-b border-slate-200/80 p-4 sm:p-6 dark:border-white/10">
           <div>
             <h2 id="add-product-title" className="flex items-center gap-2 text-2xl font-extrabold text-primary-900 dark:text-slate-50">
               <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-600 to-primary-900 text-accent-300 shadow-md dark:from-accent-400 dark:to-accent-600 dark:text-primary-950">
@@ -273,7 +273,7 @@ export default function AddCustomProductModal({ onSave, onClose, defaultCategory
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} noValidate className="overflow-auto p-6">
+        <form onSubmit={handleSubmit} noValidate className="overflow-auto p-4 sm:p-6">
           <div className="grid gap-5 md:grid-cols-2">
             <Field label="Категорія" error={errors.category}>
               <select value={draft.category} onChange={update('category')} className={FIELD_CLASS}>

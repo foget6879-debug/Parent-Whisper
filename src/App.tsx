@@ -68,7 +68,7 @@ function App() {
         <Guarantees />
         <FinalCta />
       </main>
-      <footer className="mx-auto mt-4 max-w-6xl px-6 pb-12 text-center">
+      <footer className="mx-auto mt-4 max-w-6xl px-4 pb-12 sm:px-6 text-center">
         <div className="border-t border-slate-200/70 pt-8 dark:border-white/10">
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Цифри на сторінці орієнтовні: їх можна замінити на свої заміри та актуальні ціни в магазинах.

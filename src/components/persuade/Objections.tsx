@@ -44,7 +44,7 @@ export default function Objections() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="questions" className="mx-auto max-w-4xl px-6 py-20 md:py-28">
+    <section id="questions" className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-20 md:py-28">
       <Reveal>
         <p className="eyebrow">Відповіді на запитання</p>
         <h2 className="mt-4 text-3xl font-extrabold text-primary-900 md:text-4xl dark:text-slate-50">

@@ -22,7 +22,7 @@ export default function FinalCta() {
   const [response, setResponse] = useState<ResponseKey | null>(null);
 
   return (
-    <section id="conversation" className="mx-auto max-w-4xl px-6 py-20 md:py-28">
+    <section id="conversation" className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-20 md:py-28">
       <Reveal>
         <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-primary-800 via-primary-700 to-primary-900 p-8 text-center text-white panel-glow md:p-14 dark:from-primary-900 dark:via-primary-800 dark:to-primary-950">
           <div className="pointer-events-none absolute inset-0 grid-bg opacity-60" aria-hidden="true" />
