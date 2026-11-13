@@ -203,14 +203,15 @@
 /* ------------------------------------------------------------------ */
 
 .city-backdrop {
-  --city-far: rgba(129, 140, 248, 0.17);
-  --city-mid: rgba(99, 102, 241, 0.22);
-  --city-near: rgba(67, 56, 202, 0.26);
-  --city-window-warm: rgba(217, 119, 6, 0.5);
-  --city-window-cool: rgba(79, 70, 229, 0.34);
+  /* Daytime palette for light mode: solid, "normal" buildings */
+  --city-far: #cbd5e1;
+  --city-mid: #94a3b8;
+  --city-near: #64748b;
+  --city-window-warm: rgba(255, 255, 255, 0.45);
+  --city-window-cool: rgba(241, 245, 249, 0.4);
   --city-street: rgba(132, 204, 22, 0.4);
   --city-beacon: rgba(225, 29, 72, 0.75);
-  --city-cloud: rgba(255, 255, 255, 0.55);
+  --city-cloud: rgba(255, 255, 255, 0.6);
   --city-moon: rgba(224, 231, 255, 0.9);
 
   position: fixed;
@@ -236,7 +237,7 @@
 .city-sky {
   position: absolute;
   inset: 0;
-  background-image: linear-gradient(to top, rgba(199, 210, 254, 0.5), transparent 46%);
+  background-image: linear-gradient(to top, rgba(186, 230, 253, 0.45), rgba(224, 242, 254, 0.18) 46%, transparent 75%);
 }
 
 .dark .city-sky {
@@ -327,6 +328,7 @@
   right: 0;
   bottom: 0;
   width: 100%;
+  transition: opacity 400ms ease, visibility 400ms ease;
 }
 
 .city-layer--far {
@@ -388,16 +390,27 @@
   background-image: radial-gradient(circle at 50% 50%, var(--win) 1.05px, transparent 1.55px);
   background-size: 9px 12px;
   border-radius: 2px;
+  opacity: 0.5;
+}
+
+:root:not(.dark) .city-windows,
+:root:not(.dark) .city-windows.is-lit,
+:root:not(.dark) .city-building.is-dim .city-windows {
+  opacity: 0.28;
+  animation: none;
+}
+
+.dark .city-windows {
   opacity: 0.6;
 }
 
-.city-windows.is-lit {
+.dark .city-windows.is-lit {
   animation-name: windows-breathe;
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
 }
 
-.city-building.is-dim .city-windows {
+.dark .city-building.is-dim .city-windows {
   opacity: 0.16;
 }
 
@@ -434,12 +447,28 @@
   animation: beacon-blink 2.8s ease-in-out infinite;
 }
 
+:root:not(.dark) .city-beacon {
+  opacity: 0;
+  animation: none;
+  box-shadow: none;
+}
+
+:root:not(.dark) .city-antenna {
+  opacity: 0.45;
+}
+
 .city-haze {
   position: absolute;
   inset: auto 0 0 0;
   height: 42vh;
   z-index: 4;
   background-image: radial-gradient(ellipse 60% 100% at 50% 100%, rgba(132, 204, 22, 0.14), transparent 70%);
+  transition: opacity 400ms ease, visibility 400ms ease;
+}
+
+:root:not(.dark) .city-haze {
+  opacity: 0;
+  visibility: hidden;
 }
 
 .dark .city-haze {
@@ -455,6 +484,15 @@
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--city-street), transparent);
   box-shadow: 0 0 18px 2px var(--city-street);
+  transition: opacity 400ms ease, visibility 400ms ease;
+}
+
+:root:not(.dark) .city-street {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.dark .city-street {
   opacity: 0.7;
 }
 
@@ -466,6 +504,12 @@
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
+  transition: opacity 400ms ease, visibility 400ms ease;
+}
+
+:root:not(.dark) .city-planes {
+  opacity: 0;
+  visibility: hidden;
 }
 
 .city-plane {
