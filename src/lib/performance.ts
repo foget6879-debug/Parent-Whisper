@@ -1,5 +1,13 @@
 import { CATEGORY_LABELS, type Product, type ProductCategory } from '@/lib/products';
 
+function currentLang(): 'uk' | 'en' {
+  try {
+    return window.localStorage.getItem('family-page-language') === 'en' ? 'en' : 'uk';
+  } catch {
+    return 'uk';
+  }
+}
+
 /**
  * A small, deterministic "power" index derived from the catalogue fields.
  *
@@ -115,6 +123,7 @@ function cpuMetric(product: Product): PerformanceMetric | null {
   const raw = product.cpu?.trim() || null;
   const text = `${raw ?? ''} ${product.name}`.trim();
   if (!text) return null;
+  const label = currentLang() === 'en' ? 'CPU' : 'Процесор';
 
   const intel = text.match(/\bi([3579])[-\s]?(\d{3,5})([A-Za-z]{0,3})\b/);
   if (intel) {
@@ -129,7 +138,7 @@ function cpuMetric(product: Product): PerformanceMetric | null {
     if (suffix.startsWith('H')) score += 2;
     if (suffix.startsWith('P')) score -= 1;
 
-    return makeMetric('cpu', 'Процесор', score, raw ?? `Intel Core i${tier}-${model}${suffix}`);
+    return makeMetric('cpu', label, score, raw ?? `Intel Core i${tier}-${model}${suffix}`);
   }
 
   const ryzen = text.match(/\bRyzen\s*([3579])\s*(\d{4})([A-Za-z]{0,3})\b/);
@@ -143,28 +152,28 @@ function cpuMetric(product: Product): PerformanceMetric | null {
     if (suffix.startsWith('U')) score -= 8;
     if (suffix.startsWith('H')) score += 2;
 
-    return makeMetric('cpu', 'Процесор', score, raw ?? `Ryzen ${tier} ${model}${suffix}`);
+    return makeMetric('cpu', label, score, raw ?? `Ryzen ${tier} ${model}${suffix}`);
   }
 
   const apple = text.match(/\bApple\s*M([1-4])\b/i);
   if (apple) {
     const generation = Number(apple[1]);
     const score = { 1: 82, 2: 90, 3: 94, 4: 97 }[generation] ?? 85;
-    return makeMetric('cpu', 'Процесор', score, raw ?? `Apple M${generation}`);
+    return makeMetric('cpu', label, score, raw ?? `Apple M${generation}`);
   }
 
   const helio = text.match(/Helio\s*G(\d+)/i);
   if (helio) {
-    return makeMetric('cpu', 'Процесор', 28 + Number(helio[1]) * 0.12, raw ?? `MediaTek Helio G${helio[1]}`);
+    return makeMetric('cpu', label, 28 + Number(helio[1]) * 0.12, raw ?? `MediaTek Helio G${helio[1]}`);
   }
 
-  if (/Snapdragon/i.test(text)) return makeMetric('cpu', 'Процесор', 45, raw);
-  if (/Celeron/i.test(text)) return makeMetric('cpu', 'Процесор', 24, raw);
-  if (/Pentium/i.test(text)) return makeMetric('cpu', 'Процесор', 30, raw);
-  if (/Athlon/i.test(text)) return makeMetric('cpu', 'Процесор', 32, raw);
-  if (/\bAtom\b/i.test(text)) return makeMetric('cpu', 'Процесор', 18, raw);
+  if (/Snapdragon/i.test(text)) return makeMetric('cpu', label, 45, raw);
+  if (/Celeron/i.test(text)) return makeMetric('cpu', label, 24, raw);
+  if (/Pentium/i.test(text)) return makeMetric('cpu', label, 30, raw);
+  if (/Athlon/i.test(text)) return makeMetric('cpu', label, 32, raw);
+  if (/\bAtom\b/i.test(text)) return makeMetric('cpu', label, 18, raw);
 
-  return raw ? makeMetric('cpu', 'Процесор', 45, raw) : null;
+  return raw ? makeMetric('cpu', label, 45, raw) : null;
 }
 
 function gpuMetric(product: Product): PerformanceMetric | null {
@@ -189,8 +198,8 @@ function gpuMetric(product: Product): PerformanceMetric | null {
     else if (vram >= 12) score += 3;
   }
 
-  const detail = `${vendor} ${model}${suffix ? ` ${suffix}` : ''}${vram !== null ? ` · ${vram} ГБ` : ''}`;
-  return makeMetric('gpu', 'Графіка', score, detail);
+  const detail = `${vendor} ${model}${suffix ? ` ${suffix}` : ''}${vram !== null ? ` · ${vram} GB` : ''}`;
+  return makeMetric('gpu', currentLang() === 'en' ? 'Graphics' : 'Графіка', score, detail);
 }
 
 function ramSpeed(product: Product): number | null {
@@ -221,7 +230,7 @@ function ramMetric(product: Product): PerformanceMetric | null {
     score = capacityScore * 0.55 + typeScore * 0.2 + speedScore * 0.25;
   }
 
-  return makeMetric('ram', 'Пам’ять', score, parts.join(' · '));
+  return makeMetric('ram', currentLang() === 'en' ? 'Memory' : 'Пам’ять', score, parts.join(' · '));
 }
 
 function storageMetric(product: Product): PerformanceMetric | null {
@@ -246,7 +255,7 @@ function storageMetric(product: Product): PerformanceMetric | null {
   if (isNvme) parts.push('NVMe');
   else if (isSata) parts.push('SATA');
 
-  return makeMetric('storage', 'Накопичувач', score, parts.join(' · '));
+  return makeMetric('storage', currentLang() === 'en' ? 'Storage' : 'Накопичувач', score, parts.join(' · '));
 }
 
 function deviceGpuMetric(
@@ -263,15 +272,22 @@ function deviceGpuMetric(
     ? Math.max(50, cpu.score * 0.55)
     : cpu.score * (product.category === 'tablet' ? 0.5 : 0.45);
 
-  return makeMetric('gpu', 'Графіка', score, hasDiscreteHint ? 'Дискретна графіка' : 'Інтегрована графіка');
+  const en = currentLang() === 'en';
+  return makeMetric(
+    'gpu',
+    en ? 'Graphics' : 'Графіка',
+    score,
+    hasDiscreteHint ? (en ? 'Discrete graphics' : 'Дискретна графіка') : en ? 'Integrated graphics' : 'Інтегрована графіка',
+  );
 }
 
 function performanceLabel(score: number): string {
-  if (score >= 80) return 'Дуже висока';
-  if (score >= 60) return 'Висока';
-  if (score >= 42) return 'Середня';
-  if (score >= 28) return 'Базова';
-  return 'Мінімальна';
+  const en = currentLang() === 'en';
+  if (score >= 80) return en ? 'Very high' : 'Дуже висока';
+  if (score >= 60) return en ? 'High' : 'Висока';
+  if (score >= 42) return en ? 'Medium' : 'Середня';
+  if (score >= 28) return en ? 'Basic' : 'Базова';
+  return en ? 'Minimal' : 'Мінімальна';
 }
 
 const DEVICE_WEIGHTS: Record<PerformanceMetricKey, number> = {
@@ -350,13 +366,17 @@ export function arePerformanceComparable(products: Product[]): boolean {
 }
 
 export function powerComparisonLabel(products: Product[]): string {
+  const en = currentLang() === 'en';
   const categories = new Set(products.map((product) => product.category));
+  const categoryLabels: Record<ProductCategory, string> = en
+    ? { laptop: 'Laptops', desktop: 'Desktops', tablet: 'Tablets', kit: 'Bundles', gpu: 'Graphics cards', cpu: 'Processors', ram: 'Memory (RAM)', ssd: 'Storage (SSD)' }
+    : CATEGORY_LABELS;
   if (categories.size === 1) {
     const only = products[0].category;
-    return isDeviceCategory(only) ? 'Пристрої' : CATEGORY_LABELS[only];
+    return isDeviceCategory(only) ? (en ? 'Devices' : 'Пристрої') : categoryLabels[only];
   }
-  if ([...categories].every(isDeviceCategory)) return 'Пристрої різних типів';
-  return 'Різні класи комплектуючих';
+  if ([...categories].every(isDeviceCategory)) return en ? 'Different device types' : 'Пристрої різних типів';
+  return en ? 'Different component classes' : 'Різні класи комплектуючих';
 }
 
 /** IDs of the products with the highest power index, or [] when not comparable. */

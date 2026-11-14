@@ -2,34 +2,9 @@ import { useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import { BookOpen, HardDrive, ShieldCheck, type LucideIcon } from 'lucide-react';
 import Reveal from '@/components/persuade/Reveal';
 import { prefersReducedMotion } from '@/hooks/useInView';
+import { useLanguage } from '@/i18n/LanguageContext';
 
-interface Analogy {
-  icon: LucideIcon;
-  title: string;
-  analogy: string;
-  text: string;
-}
-
-const ANALOGIES: Analogy[] = [
-  {
-    icon: BookOpen,
-    title: 'Оперативна пам\u02bcять',
-    analogy: 'Це розмір робочого столу',
-    text: 'На великому столі можна розкласти одразу кілька документів. На маленькому доводиться щоразу прибирати один, щоб взяти інший.',
-  },
-  {
-    icon: HardDrive,
-    title: 'Накопичувач SSD',
-    analogy: 'Це ящик біля руки, а не підвал',
-    text: 'Старий накопичувач схожий на архів, куди треба йти пішки. Новий SSD тримає найважливіше під рукою, тож усе відкривається миттєво.',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Планове обслуговування',
-    analogy: 'Як ТО для автомобіля',
-    text: 'Невелика вчасна заміна обходиться набагато дешевше, ніж ремонт після поломки. Ми зменшуємо ризик несподіваних витрат.',
-  },
-];
+const ICONS: LucideIcon[] = [BookOpen, HardDrive, ShieldCheck];
 
 function TiltCard({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -57,18 +32,20 @@ function TiltCard({ children }: { children: ReactNode }) {
 }
 
 export default function AnalogyCards() {
+  const { t } = useLanguage();
+
   return (
     <section className="section-shell">
       <Reveal>
-        <p className="eyebrow">Простими словами</p>
+        <p className="eyebrow">{t.analogy.eyebrow}</p>
         <h2 className="mt-4 max-w-3xl text-3xl font-extrabold text-primary-900 md:text-4xl dark:text-slate-50">
-          Три речі, які пояснюють усе без техніки
+          {t.analogy.title}
         </h2>
       </Reveal>
 
       <div className="perspective-1000 mt-12 grid gap-6 md:grid-cols-3">
-        {ANALOGIES.map((item, index) => {
-          const Icon = item.icon;
+        {t.analogy.items.map((item, index) => {
+          const Icon = ICONS[index] ?? BookOpen;
           return (
             <Reveal key={item.title} delay={index * 120}>
               <TiltCard>

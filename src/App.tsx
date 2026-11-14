@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Backdrop from '@/components/persuade/Backdrop';
 import SiteHeader from '@/components/persuade/SiteHeader';
 import SettingsModal from '@/components/persuade/SettingsModal';
@@ -17,9 +17,11 @@ import { useBackground } from '@/hooks/useBackground';
 import { useTheme } from '@/hooks/useTheme';
 import { useSound } from '@/hooks/useSound';
 import { useAmbience } from '@/hooks/useAmbience';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { playSound } from '@/lib/sound';
 
 function App() {
+  const { t } = useLanguage();
   const { theme, toggle: toggleTheme } = useTheme();
   const { enabled: soundEnabled, toggle: toggleSound } = useSound();
   const ambience = useAmbience();
@@ -29,6 +31,10 @@ function App() {
     setSettingsOpen(false);
     playSound('close');
   }, []);
+
+  useEffect(() => {
+    document.title = t.meta.title;
+  }, [t.meta.title]);
 
   const handleToggleTheme = () => {
     toggleTheme();
@@ -70,11 +76,9 @@ function App() {
       </main>
       <footer className="mx-auto mt-4 max-w-6xl px-4 pb-12 sm:px-6 text-center">
         <div className="border-t border-slate-200/70 pt-8 dark:border-white/10">
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Цифри на сторінці орієнтовні: їх можна замінити на свої заміри та актуальні ціни в магазинах.
-          </p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{t.footer.note}</p>
           <p className="mt-2 font-display text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
-            Parent Whisper · 2026
+            {t.footer.brand}
           </p>
         </div>
       </footer>

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { AMBIENCE_SCENES, type AmbienceScene } from '@/lib/ambience';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
+import { useLanguage, interpolate } from '@/i18n/LanguageContext';
 
 export interface AmbienceControls {
   scene: AmbienceScene;
@@ -41,6 +42,7 @@ const controlClass =
   'relative flex h-10 w-10 items-center justify-center rounded-full border border-slate-200/80 bg-white/70 text-primary-800 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent-400 hover:text-primary-600 sm:h-11 sm:w-11 dark:border-white/10 dark:bg-white/5 dark:text-accent-300 dark:hover:border-accent-400/60 dark:hover:text-accent-200';
 
 export default function AmbienceControl({ ambience }: AmbienceControlProps) {
+  const { t } = useLanguage();
   const { scene, enabled, active, volume, setScene, setVolume, toggle } = ambience;
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -59,7 +61,7 @@ export default function AmbienceControl({ ambience }: AmbienceControlProps) {
     return () => document.removeEventListener('pointerdown', handlePointerDown);
   }, [open]);
 
-  const activeScene = AMBIENCE_SCENES.find((item) => item.id === scene) ?? AMBIENCE_SCENES[0];
+  const activeSceneText = t.ambience.scenes[scene];
   const VolumeIcon = !enabled || volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
 
   return (
@@ -67,10 +69,10 @@ export default function AmbienceControl({ ambience }: AmbienceControlProps) {
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
-        aria-label={enabled ? `Фонові звуки: ${activeScene.label}. Налаштувати` : 'Увімкнути фонові звуки'}
+        aria-label={enabled ? interpolate(t.ambience.configure, { label: activeSceneText.label }) : t.ambience.open}
         aria-expanded={open}
         aria-haspopup="dialog"
-        title="Фонові звуки міста"
+        title={t.ambience.tooltip}
         className={controlClass}
       >
         <Waves className="h-5 w-5" aria-hidden="true" />
@@ -85,20 +87,20 @@ export default function AmbienceControl({ ambience }: AmbienceControlProps) {
       {open && (
         <div
           role="dialog"
-          aria-label="Фонові звуки"
+          aria-label={t.ambience.title}
           className="absolute right-0 top-[calc(100%+0.75rem)] z-50 w-[21rem] max-w-[calc(100vw-2rem)] animate-popover-in rounded-3xl border border-white/70 bg-white/95 p-5 text-left shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-primary-950/95"
         >
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="font-display text-base font-extrabold text-primary-900 dark:text-slate-50">Фонові звуки</p>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Тихо грають, поки ви читаєте сторінку.</p>
+              <p className="font-display text-base font-extrabold text-primary-900 dark:text-slate-50">{t.ambience.title}</p>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{t.ambience.hint}</p>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
               <button
                 type="button"
                 onClick={toggle}
                 aria-pressed={enabled}
-                aria-label={enabled ? 'Призупинити фонові звуки' : 'Увімкнути фонові звуки'}
+                aria-label={enabled ? t.ambience.pause : t.ambience.play}
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-800 text-accent-300 transition-colors hover:bg-primary-700 dark:bg-accent-400 dark:text-primary-950 dark:hover:bg-accent-300"
               >
                 {enabled ? <Pause className="h-4 w-4" aria-hidden="true" /> : <Play className="h-4 w-4" aria-hidden="true" />}
@@ -106,7 +108,7 @@ export default function AmbienceControl({ ambience }: AmbienceControlProps) {
               <button
                 type="button"
                 onClick={close}
-                aria-label="Закрити фонові звуки"
+                aria-label={t.ambience.close}
                 className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200/80 bg-white/60 text-slate-600 transition-colors hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
@@ -114,10 +116,11 @@ export default function AmbienceControl({ ambience }: AmbienceControlProps) {
             </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-2" role="group" aria-label="Вибір звукової сцени">
+          <div className="mt-4 grid grid-cols-2 gap-2" role="group" aria-label={t.ambience.group}>
             {AMBIENCE_SCENES.map((item) => {
               const Icon = SCENE_ICONS[item.id];
               const isActive = enabled && scene === item.id;
+              const sceneText = t.ambience.scenes[item.id];
 
               return (
                 <button
@@ -132,9 +135,9 @@ export default function AmbienceControl({ ambience }: AmbienceControlProps) {
                   }`}
                 >
                   <Icon className={`h-5 w-5 ${isActive ? 'text-accent-300' : 'text-primary-600 dark:text-accent-300'}`} aria-hidden="true" />
-                  <span className="mt-2 block text-sm font-bold">{item.label}</span>
+                  <span className="mt-2 block text-sm font-bold">{sceneText.label}</span>
                   <span className={`mt-0.5 block text-[11px] leading-snug ${isActive ? 'text-primary-100' : 'text-slate-500 dark:text-slate-400'}`}>
-                    {item.description}
+                    {sceneText.description}
                   </span>
                 </button>
               );
@@ -145,7 +148,7 @@ export default function AmbienceControl({ ambience }: AmbienceControlProps) {
             <div className="flex items-center justify-between gap-3">
               <span className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
                 <VolumeIcon className="h-4 w-4" aria-hidden="true" />
-                Гучність
+                {t.ambience.volume}
               </span>
               <span className="text-sm font-semibold tabular-nums text-slate-500 dark:text-slate-400">{Math.round(volume * 100)}%</span>
             </div>
@@ -156,7 +159,7 @@ export default function AmbienceControl({ ambience }: AmbienceControlProps) {
               step={1}
               value={Math.round(volume * 100)}
               onChange={(event) => setVolume(Number(event.target.value) / 100)}
-              aria-label="Гучність фонових звуків"
+              aria-label={t.ambience.volumeAria}
               className="mt-3 w-full cursor-pointer"
             />
           </div>
@@ -170,21 +173,19 @@ export default function AmbienceControl({ ambience }: AmbienceControlProps) {
                     <span />
                     <span />
                   </span>
-                  Зараз грає: {activeScene.label}
+                  {interpolate(t.ambience.nowPlaying, { label: activeSceneText.label })}
                 </>
               ) : (
                 <>
                   <Play className="h-3 w-3" aria-hidden="true" />
-                  Натисніть будь-де на сторінці, щоб почути звук
+                  {t.ambience.tapToHear}
                 </>
               )
             ) : (
-              'Звук вимкнено'
+              t.ambience.muted
             )}
           </p>
-          <p className="mt-2 text-[11px] leading-snug text-slate-400 dark:text-slate-500">
-            Звуки створюються просто у браузері — жодних файлів не завантажується.
-          </p>
+          <p className="mt-2 text-[11px] leading-snug text-slate-400 dark:text-slate-500">{t.ambience.note}</p>
         </div>
       )}
     </div>

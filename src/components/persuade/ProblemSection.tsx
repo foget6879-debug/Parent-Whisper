@@ -2,29 +2,31 @@ import { AlertTriangle, Clock, Gauge, Thermometer } from 'lucide-react';
 import CountUp from '@/components/persuade/CountUp';
 import Reveal from '@/components/persuade/Reveal';
 import { SPEED_METRICS } from '@/data/upgradePlan';
-
-const SYMPTOMS = [
-  { icon: Clock, title: 'Довго запускається', text: 'Поки ноутбук прокидається, можна встигнути заварити чай.' },
-  { icon: Gauge, title: 'Гальмує з вкладками', text: 'Коли відкрито більше пари сторінок, курсор починає «думати».' },
-  { icon: Thermometer, title: 'Гаряче і гуде', text: 'Система намагається впоратися з навантаженням і нагрівається.' },
-  { icon: AlertTriangle, title: 'Зависає без попередження', text: 'Незбережена робота може зникнути саме тоді, коли вона найважливіша.' },
-];
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function ProblemSection() {
+  const { t } = useLanguage();
   const bootMinutes = SPEED_METRICS[0].before.seconds / 60;
   const openSeconds = SPEED_METRICS[1].before.seconds;
+
+  const symptoms = [
+    { icon: Clock, title: t.problem.symptoms.bootTitle, text: t.problem.symptoms.bootText },
+    { icon: Gauge, title: t.problem.symptoms.tabsTitle, text: t.problem.symptoms.tabsText },
+    { icon: Thermometer, title: t.problem.symptoms.heatTitle, text: t.problem.symptoms.heatText },
+    { icon: AlertTriangle, title: t.problem.symptoms.freezeTitle, text: t.problem.symptoms.freezeText },
+  ];
 
   return (
     <section id="problem" className="section-shell">
       <Reveal>
-        <p className="eyebrow">Як є зараз</p>
+        <p className="eyebrow">{t.problem.eyebrow}</p>
         <h2 className="mt-4 max-w-3xl text-3xl font-extrabold text-primary-900 md:text-4xl dark:text-slate-50">
-          Ноутбук працює, але щодня він відбирає у нас час і спокій
+          {t.problem.title}
         </h2>
       </Reveal>
 
       <div className="mt-12 grid gap-6 md:grid-cols-2">
-        {SYMPTOMS.map((symptom, index) => {
+        {symptoms.map((symptom, index) => {
           const Icon = symptom.icon;
           return (
             <Reveal key={symptom.title} delay={index * 100}>
@@ -47,15 +49,15 @@ export default function ProblemSection() {
           <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-accent-400/25 blur-3xl" aria-hidden="true" />
           <div className="pointer-events-none absolute -bottom-16 left-1/3 h-48 w-48 rounded-full bg-violet-500/30 blur-3xl" aria-hidden="true" />
           <div className="relative">
-            <p className="text-lg text-primary-100">Запуск ноутбука зараз</p>
+            <p className="text-lg text-primary-100">{t.problem.bootNow}</p>
             <p className="mt-2 font-display text-5xl font-extrabold text-accent-300">
-              <CountUp value={bootMinutes} suffix=" хв" />
+              <CountUp value={bootMinutes} suffix={` ${t.problem.min}`} />
             </p>
           </div>
           <div className="relative">
-            <p className="text-lg text-primary-100">Відкриття одного документа</p>
+            <p className="text-lg text-primary-100">{t.problem.openNow}</p>
             <p className="mt-2 font-display text-5xl font-extrabold text-accent-300">
-              <CountUp value={openSeconds} suffix=" сек" />
+              <CountUp value={openSeconds} suffix={` ${t.problem.sec}`} />
             </p>
           </div>
         </div>

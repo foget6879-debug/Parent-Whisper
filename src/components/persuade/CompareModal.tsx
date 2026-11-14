@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState, type AnimationEvent } from 'react';
 import { AlertTriangle, CheckCircle2, ExternalLink, Sparkles, Trophy, X, Zap } from 'lucide-react';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
+import { useLanguage, interpolate } from '@/i18n/LanguageContext';
 import { getPowerWinners } from '@/lib/performance';
 import { formatUah, type Product } from '@/lib/products';
 import PowerCompare from '@/components/persuade/PowerCompare';
@@ -14,11 +15,10 @@ type BetterDirection = 'lower' | 'higher';
 
 interface SpecRow {
   key: string;
-  label: string;
+  labelKey: string;
   value: (product: Product) => string | null;
   numeric: (product: Product) => number | null;
   better: BetterDirection;
-  /** Rows compare only when this returns true (e.g. CPU tiers across the same brand). */
   comparable?: (products: Product[]) => boolean;
 }
 
@@ -93,114 +93,6 @@ function pricePerGb(product: Product, gb: number | null): number | null {
   return Math.round(product.priceUah / gb);
 }
 
-const SPEC_ROWS: SpecRow[] = [
-  { key: 'cpu', label: 'Процесор / модель', value: (p) => p.cpu, numeric: () => null, better: 'higher' },
-  { key: 'ram', label: 'Оперативна пам’ять', value: (p) => (p.ramGb !== null ? `${p.ramGb} ГБ` : null), numeric: (p) => p.ramGb, better: 'higher' },
-  { key: 'storage', label: 'Накопичувач', value: (p) => (p.storageGb !== null ? `${p.storageGb} ГБ` : null), numeric: (p) => p.storageGb, better: 'higher' },
-  { key: 'display', label: 'Екран', value: (p) => (p.displayInches !== null ? `${p.displayInches}″` : null), numeric: (p) => p.displayInches, better: 'higher' },
-  { key: 'weight', label: 'Вага', value: (p) => (p.weightKg !== null ? `${p.weightKg} кг` : null), numeric: (p) => p.weightKg, better: 'lower' },
-  { key: 'battery', label: 'Автономність', value: (p) => (p.batteryHours !== null ? `до ${p.batteryHours} год` : null), numeric: (p) => p.batteryHours, better: 'higher' },
-  {
-    key: 'gpuSeries',
-    label: 'Серія відеокарти',
-    value: (p) => parseGpuSeries(p)?.label ?? null,
-    numeric: (p) => parseGpuSeries(p)?.rank ?? null,
-    better: 'higher',
-  },
-  {
-    key: 'gpuVram',
-    label: 'Відеопам’ять',
-    value: (p) => {
-      const gb = parseGpuVram(p);
-      return gb !== null ? `${gb} ГБ` : null;
-    },
-    numeric: parseGpuVram,
-    better: 'higher',
-  },
-  {
-    key: 'gpuPriceGb',
-    label: 'Ціна за 1 ГБ відеопам’яті',
-    value: (p) => {
-      const price = pricePerGb(p, parseGpuVram(p));
-      return price !== null ? `${price.toLocaleString('uk-UA')} грн` : null;
-    },
-    numeric: (p) => pricePerGb(p, parseGpuVram(p)),
-    better: 'lower',
-  },
-  {
-    key: 'cpuTier',
-    label: 'Клас процесора',
-    value: (p) => {
-      const tier = parseCpuTier(p);
-      return tier !== null ? `Рівень ${tier}` : null;
-    },
-    numeric: parseCpuTier,
-    better: 'higher',
-    comparable: sameBrand,
-  },
-  {
-    key: 'cpuNumber',
-    label: 'Індекс моделі',
-    value: (p) => {
-      const index = parseCpuNumber(p);
-      return index !== null ? String(index) : null;
-    },
-    numeric: parseCpuNumber,
-    better: 'higher',
-    comparable: sameBrand,
-  },
-  {
-    key: 'ramType',
-    label: 'Тип пам’яті',
-    value: (p) => {
-      const type = parseRamType(p);
-      return type !== null ? `DDR${type}` : null;
-    },
-    numeric: parseRamType,
-    better: 'higher',
-  },
-  {
-    key: 'ramSpeed',
-    label: 'Швидкість пам’яті',
-    value: (p) => {
-      const speed = parseRamSpeed(p);
-      return speed !== null ? `${speed} МГц` : null;
-    },
-    numeric: parseRamSpeed,
-    better: 'higher',
-  },
-  { key: 'ramKit', label: 'Комплектація', value: parseRamKit, numeric: () => null, better: 'higher' },
-  {
-    key: 'ramPriceGb',
-    label: 'Ціна за 1 ГБ пам’яті',
-    value: (p) => {
-      if (p.category !== 'ram') return null;
-      const price = pricePerGb(p, p.ramGb);
-      return price !== null ? `${price.toLocaleString('uk-UA')} грн` : null;
-    },
-    numeric: (p) => (p.category === 'ram' ? pricePerGb(p, p.ramGb) : null),
-    better: 'lower',
-  },
-  {
-    key: 'ssdInterface',
-    label: 'Інтерфейс',
-    value: (p) => parseSsdInterface(p)?.label ?? null,
-    numeric: (p) => parseSsdInterface(p)?.rank ?? null,
-    better: 'higher',
-  },
-  {
-    key: 'ssdPriceGb',
-    label: 'Ціна за 1 ГБ',
-    value: (p) => {
-      if (p.category !== 'ssd') return null;
-      const price = pricePerGb(p, p.storageGb);
-      return price !== null ? `${price.toLocaleString('uk-UA')} грн` : null;
-    },
-    numeric: (p) => (p.category === 'ssd' ? pricePerGb(p, p.storageGb) : null),
-    better: 'lower',
-  },
-];
-
 function computeWinners(products: Product[], rows: SpecRow[]): WinnerMap {
   const result: WinnerMap = { price: [] };
 
@@ -229,89 +121,6 @@ interface CompatibilityNote {
   message: string;
 }
 
-function checkCompatibility(products: Product[]): CompatibilityNote[] {
-  const notes: CompatibilityNote[] = [];
-  const categories = new Set(products.map((p) => p.category));
-  const singleCategory = categories.size === 1 ? products[0].category : null;
-
-  if (singleCategory === 'ram') {
-    const types = new Set(products.map(parseRamType).filter((v): v is number => v !== null));
-    if (types.size > 1) {
-      notes.push({
-        level: 'warning',
-        message: 'У порівнянні є різні покоління пам’яті (DDR4 / DDR5). Перевірте, який тип підтримує материнська плата.',
-      });
-    } else if (types.size === 1) {
-      notes.push({ level: 'ok', message: `Усі модулі одного типу (DDR${[...types][0]}) — за типом вони сумісні.` });
-    }
-    const speeds = products.map(parseRamSpeed).filter((v): v is number => v !== null);
-    if (new Set(speeds).size > 1) {
-      notes.push({
-        level: 'ok',
-        message: 'Якщо поставити модулі з різною швидкістю разом, система працюватиме на швидкості повільнішого.',
-      });
-    }
-  }
-
-  if (singleCategory === 'ssd') {
-    const interfaces = new Set(products.map((p) => parseSsdInterface(p)?.label).filter(Boolean) as string[]);
-    if (interfaces.size > 1) {
-      notes.push({ level: 'ok', message: 'SATA і NVMe підключаються по-різному, але обидва підійдуть. NVMe зазвичай швидший.' });
-    } else if (interfaces.size === 1) {
-      notes.push({ level: 'ok', message: `Усі накопичувачі з інтерфейсом ${[...interfaces][0]} — взаємозамінні.` });
-    }
-  }
-
-  if (singleCategory === 'gpu') {
-    notes.push({
-      level: 'warning',
-      message: 'Перевірте потужність блока живлення та наявність потрібних роз’ємів для вибраної відеокарти.',
-    });
-    const vrams = products.map(parseGpuVram).filter((v): v is number => v !== null);
-    if (new Set(vrams).size > 1) {
-      notes.push({ level: 'ok', message: 'Більше відеопам’яті дає запас для нових ігор і важких програм.' });
-    }
-  }
-
-  if (singleCategory === 'cpu') {
-    notes.push({
-      level: 'warning',
-      message: 'Перевірте сокет процесора та підтримку з боку материнської плати й системи охолодження.',
-    });
-  }
-
-  if (categories.size > 1) {
-    const hasCpu = products.some((p) => p.category === 'cpu');
-    const hasGpu = products.some((p) => p.category === 'gpu');
-    const hasRam = products.some((p) => p.category === 'ram');
-    const hasSsd = products.some((p) => p.category === 'ssd');
-
-    if (hasCpu && hasRam) {
-      notes.push({ level: 'ok', message: 'Процесор і оперативна пам’ять — основа оновлення, їх можна брати разом.' });
-    }
-    if (hasCpu && hasGpu) {
-      notes.push({
-        level: 'warning',
-        message: 'Перевірте, чи материнська плата та блок живлення підтримують і новий процесор, і нову відеокарту.',
-      });
-    }
-    if (hasGpu && hasSsd) {
-      notes.push({ level: 'ok', message: 'Відеокарта й накопичувач незалежні — можна встановити разом.' });
-    }
-    if (hasRam && hasSsd) {
-      notes.push({ level: 'ok', message: 'Оперативна пам’ять і накопичувач працюють разом без конфліктів.' });
-    }
-    if (hasCpu && hasSsd && !hasRam) {
-      notes.push({
-        level: 'warning',
-        message: 'Для оновлення з новим процесором варто також перевірити оперативну пам’ять — її може не вистачати.',
-      });
-    }
-  }
-
-  return notes;
-}
-
 function winnerBadgeClass(highlight: boolean): string {
   return highlight
     ? 'rounded-full bg-gradient-to-r from-accent-300 to-accent-500 px-2.5 py-1 text-sm font-bold text-primary-950'
@@ -319,6 +128,8 @@ function winnerBadgeClass(highlight: boolean): string {
 }
 
 export default function CompareModal({ products, onClose }: CompareModalProps) {
+  const { t, formatNumber } = useLanguage();
+  const currency = t.currency;
   const [leaving, setLeaving] = useState(false);
   const closedRef = useRef(false);
   const requestClose = useCallback(() => setLeaving(true), []);
@@ -329,8 +140,77 @@ export default function CompareModal({ products, onClose }: CompareModalProps) {
     closedRef.current = true;
     onClose();
   };
-  const winners = useMemo(() => computeWinners(products, SPEC_ROWS), [products]);
-  const compatibility = useMemo(() => checkCompatibility(products), [products]);
+
+  const SPEC_ROWS: SpecRow[] = useMemo(
+    () => [
+      { key: 'cpu', labelKey: 'cpu', value: (p) => p.cpu, numeric: () => null, better: 'higher' },
+      { key: 'ram', labelKey: 'ram', value: (p) => (p.ramGb !== null ? `${p.ramGb} ${currency === 'UAH' ? 'GB' : 'ГБ'}` : null), numeric: (p) => p.ramGb, better: 'higher' },
+      { key: 'storage', labelKey: 'storage', value: (p) => (p.storageGb !== null ? `${p.storageGb} ${currency === 'UAH' ? 'GB' : 'ГБ'}` : null), numeric: (p) => p.storageGb, better: 'higher' },
+      { key: 'display', labelKey: 'display', value: (p) => (p.displayInches !== null ? `${p.displayInches}″` : null), numeric: (p) => p.displayInches, better: 'higher' },
+      { key: 'weight', labelKey: 'weight', value: (p) => (p.weightKg !== null ? `${p.weightKg} ${currency === 'UAH' ? 'kg' : 'кг'}` : null), numeric: (p) => p.weightKg, better: 'lower' },
+      { key: 'battery', labelKey: 'battery', value: (p) => (p.batteryHours !== null ? interpolate(t.compareModal.upToHours, { n: p.batteryHours }) : null), numeric: (p) => p.batteryHours, better: 'higher' },
+      { key: 'gpuSeries', labelKey: 'gpuSeries', value: (p) => parseGpuSeries(p)?.label ?? null, numeric: (p) => parseGpuSeries(p)?.rank ?? null, better: 'higher' },
+      { key: 'gpuVram', labelKey: 'gpuVram', value: (p) => { const gb = parseGpuVram(p); return gb !== null ? `${gb} ${currency === 'UAH' ? 'GB' : 'ГБ'}` : null; }, numeric: parseGpuVram, better: 'higher' },
+      { key: 'gpuPriceGb', labelKey: 'gpuPriceGb', value: (p) => { const price = pricePerGb(p, parseGpuVram(p)); return price !== null ? `${formatNumber(price)} ${currency}` : null; }, numeric: (p) => pricePerGb(p, parseGpuVram(p)), better: 'lower' },
+      { key: 'cpuTier', labelKey: 'cpuTier', value: (p) => { const tier = parseCpuTier(p); return tier !== null ? interpolate(t.compareModal.level, { n: tier }) : null; }, numeric: parseCpuTier, better: 'higher', comparable: sameBrand },
+      { key: 'cpuNumber', labelKey: 'cpuNumber', value: (p) => { const index = parseCpuNumber(p); return index !== null ? String(index) : null; }, numeric: parseCpuNumber, better: 'higher', comparable: sameBrand },
+      { key: 'ramType', labelKey: 'ramType', value: (p) => { const type = parseRamType(p); return type !== null ? `DDR${type}` : null; }, numeric: parseRamType, better: 'higher' },
+      { key: 'ramSpeed', labelKey: 'ramSpeed', value: (p) => { const speed = parseRamSpeed(p); return speed !== null ? `${speed} ${currency === 'UAH' ? 'MHz' : 'МГц'}` : null; }, numeric: parseRamSpeed, better: 'higher' },
+      { key: 'ramKit', labelKey: 'ramKit', value: parseRamKit, numeric: () => null, better: 'higher' },
+      { key: 'ramPriceGb', labelKey: 'ramPriceGb', value: (p) => { if (p.category !== 'ram') return null; const price = pricePerGb(p, p.ramGb); return price !== null ? `${formatNumber(price)} ${currency}` : null; }, numeric: (p) => (p.category === 'ram' ? pricePerGb(p, p.ramGb) : null), better: 'lower' },
+      { key: 'ssdInterface', labelKey: 'ssdInterface', value: (p) => parseSsdInterface(p)?.label ?? null, numeric: (p) => parseSsdInterface(p)?.rank ?? null, better: 'higher' },
+      { key: 'ssdPriceGb', labelKey: 'ssdPriceGb', value: (p) => { if (p.category !== 'ssd') return null; const price = pricePerGb(p, p.storageGb); return price !== null ? `${formatNumber(price)} ${currency}` : null; }, numeric: (p) => (p.category === 'ssd' ? pricePerGb(p, p.storageGb) : null), better: 'lower' },
+    ],
+    [currency, formatNumber, t.compareModal.level, t.compareModal.upToHours]
+  );
+
+  const compatibility = useMemo((): CompatibilityNote[] => {
+    const notes: CompatibilityNote[] = [];
+    const categories = new Set(products.map((p) => p.category));
+    const singleCategory = categories.size === 1 ? products[0].category : null;
+
+    if (singleCategory === 'ram') {
+      const types = new Set(products.map(parseRamType).filter((v): v is number => v !== null));
+      if (types.size > 1) {
+        notes.push({ level: 'warning', message: t.compareModal.compat.ramTypeWarn });
+      } else if (types.size === 1) {
+        notes.push({ level: 'ok', message: interpolate(t.compareModal.compat.ramTypeOk, { type: [...types][0] }) });
+      }
+      const speeds = products.map(parseRamSpeed).filter((v): v is number => v !== null);
+      if (new Set(speeds).size > 1) notes.push({ level: 'ok', message: t.compareModal.compat.ramSpeedOk });
+    }
+
+    if (singleCategory === 'ssd') {
+      const interfaces = new Set(products.map((p) => parseSsdInterface(p)?.label).filter(Boolean) as string[]);
+      if (interfaces.size > 1) notes.push({ level: 'ok', message: t.compareModal.compat.ssdMixed });
+      else if (interfaces.size === 1) notes.push({ level: 'ok', message: interpolate(t.compareModal.compat.ssdSame, { iface: [...interfaces][0] }) });
+    }
+
+    if (singleCategory === 'gpu') {
+      notes.push({ level: 'warning', message: t.compareModal.compat.gpuPower });
+      const vrams = products.map(parseGpuVram).filter((v): v is number => v !== null);
+      if (new Set(vrams).size > 1) notes.push({ level: 'ok', message: t.compareModal.compat.gpuVram });
+    }
+
+    if (singleCategory === 'cpu') notes.push({ level: 'warning', message: t.compareModal.compat.cpuSocket });
+
+    if (categories.size > 1) {
+      const hasCpu = products.some((p) => p.category === 'cpu');
+      const hasGpu = products.some((p) => p.category === 'gpu');
+      const hasRam = products.some((p) => p.category === 'ram');
+      const hasSsd = products.some((p) => p.category === 'ssd');
+
+      if (hasCpu && hasRam) notes.push({ level: 'ok', message: t.compareModal.compat.cpuRam });
+      if (hasCpu && hasGpu) notes.push({ level: 'warning', message: t.compareModal.compat.cpuGpu });
+      if (hasGpu && hasSsd) notes.push({ level: 'ok', message: t.compareModal.compat.gpuSsd });
+      if (hasRam && hasSsd) notes.push({ level: 'ok', message: t.compareModal.compat.ramSsd });
+      if (hasCpu && hasSsd && !hasRam) notes.push({ level: 'warning', message: t.compareModal.compat.cpuSsdNoRam });
+    }
+
+    return notes;
+  }, [products, t.compareModal.compat]);
+
+  const winners = useMemo(() => computeWinners(products, SPEC_ROWS), [products, SPEC_ROWS]);
   const powerWinners = useMemo(() => getPowerWinners(products), [products]);
 
   const winCounts = useMemo(() => {
@@ -340,7 +220,7 @@ export default function CompareModal({ products, onClose }: CompareModalProps) {
       for (const id of list) counts.set(id, (counts.get(id) ?? 0) + 1);
     }
     return counts;
-  }, [winners, powerWinners]);
+  }, [winners, powerWinners, SPEC_ROWS]);
 
   const topPick = useMemo(() => {
     if (products.length < 2) return null;
@@ -383,17 +263,17 @@ export default function CompareModal({ products, onClose }: CompareModalProps) {
             </span>
             <div>
               <h2 id="compare-title" className="text-2xl font-extrabold text-primary-900 dark:text-slate-50">
-                Порівняння характеристик
+                {t.compareModal.title}
               </h2>
               <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                {products.length} варіанти · підсвічено найкраще значення в кожному рядку
+                {interpolate(t.compareModal.subtitle, { count: products.length })}
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={requestClose}
-            aria-label="Закрити порівняння"
+            aria-label={t.compareModal.close}
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200/80 bg-white/60 text-slate-600 transition-colors hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10"
           >
             <X className="h-5 w-5" aria-hidden="true" />
@@ -407,15 +287,15 @@ export default function CompareModal({ products, onClose }: CompareModalProps) {
                 <Trophy className="h-5 w-5" aria-hidden="true" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold uppercase tracking-wider text-accent-700 dark:text-accent-300">Найкращий загалом</p>
+                <p className="text-sm font-bold uppercase tracking-wider text-accent-700 dark:text-accent-300">{t.compareModal.bestOverall}</p>
                 <p className="text-lg font-extrabold text-primary-900 dark:text-slate-50">{bestValue.name}</p>
                 <p className="text-sm text-slate-600 dark:text-slate-300">
-                  {winCounts.get(bestValue.id) ?? 0} переваг у порівнянні · ціна {formatUah(bestValue.priceUah)}
+                  {interpolate(t.compareModal.advantages, { count: winCounts.get(bestValue.id) ?? 0, price: formatUah(bestValue.priceUah) })}
                 </p>
               </div>
               {priceSpread > 0 && (
                 <div className="rounded-xl bg-white/70 px-3 py-2 text-right text-sm dark:bg-white/5">
-                  <p className="font-semibold text-slate-500 dark:text-slate-400">Різниця цін</p>
+                  <p className="font-semibold text-slate-500 dark:text-slate-400">{t.compareModal.priceDiff}</p>
                   <p className="font-extrabold text-primary-800 dark:text-accent-300">{formatUah(priceSpread)}</p>
                 </div>
               )}
@@ -432,7 +312,7 @@ export default function CompareModal({ products, onClose }: CompareModalProps) {
                     scope="col"
                     className="w-44 bg-slate-50/90 px-4 py-4 align-bottom text-sm font-semibold uppercase tracking-wide text-slate-500 dark:bg-white/[0.04] dark:text-slate-400"
                   >
-                    Характеристика
+                    {t.compareModal.characteristic}
                   </th>
                   {products.map((product, index) => (
                     <th key={product.id} scope="col" className="bg-slate-50/90 px-4 py-4 align-bottom dark:bg-white/[0.04]">
@@ -450,14 +330,14 @@ export default function CompareModal({ products, onClose }: CompareModalProps) {
               <tbody>
                 <tr className="border-t border-slate-200 dark:border-white/10">
                   <th scope="row" className="border-t border-slate-200/80 px-4 py-4 font-semibold text-slate-600 dark:border-white/10 dark:text-slate-300">
-                    Ціна
+                    {t.compareModal.price}
                   </th>
                   {products.map((product) => {
                     const isWinner = winners.price.includes(product.id);
                     return (
                       <td key={product.id} className={`border-t border-slate-200/80 px-4 py-4 dark:border-white/10 ${isWinner ? 'bg-accent-100/50 dark:bg-accent-500/10' : ''}`}>
                         <span className="font-display text-xl font-extrabold text-primary-800 dark:text-accent-300">{formatUah(product.priceUah)}</span>
-                        {products.length > 1 && isWinner && <span className={`ml-2 ${winnerBadgeClass(true)}`}>Найнижча</span>}
+                        {products.length > 1 && isWinner && <span className={`ml-2 ${winnerBadgeClass(true)}`}>{t.compareModal.lowest}</span>}
                       </td>
                     );
                   })}
@@ -466,10 +346,11 @@ export default function CompareModal({ products, onClose }: CompareModalProps) {
                   const winnerIds = winners[row.key] ?? [];
                   const hasValues = products.some((p) => row.value(p) !== null);
                   if (!hasValues) return null;
+                  const label = (t.compareModal.specs as Record<string, string>)[row.labelKey] ?? row.labelKey;
                   return (
                     <tr key={row.key} className="border-t border-slate-200 dark:border-white/10">
                       <th scope="row" className="border-t border-slate-200/80 px-4 py-4 font-semibold text-slate-600 dark:border-white/10 dark:text-slate-300">
-                        {row.label}
+                        {label}
                       </th>
                       {products.map((product) => {
                         const isWinner = winnerIds.includes(product.id);
@@ -482,7 +363,7 @@ export default function CompareModal({ products, onClose }: CompareModalProps) {
                             }`}
                           >
                             {value ?? '—'}
-                            {isWinner && products.length > 1 && value !== null && <span className={`ml-2 ${winnerBadgeClass(true)}`}>Краще</span>}
+                            {isWinner && products.length > 1 && value !== null && <span className={`ml-2 ${winnerBadgeClass(true)}`}>{t.compareModal.better}</span>}
                           </td>
                         );
                       })}
@@ -491,7 +372,7 @@ export default function CompareModal({ products, onClose }: CompareModalProps) {
                 })}
                 <tr className="border-t border-slate-200 dark:border-white/10">
                   <th scope="row" className="border-t border-slate-200/80 px-4 py-4 font-semibold text-slate-600 dark:border-white/10 dark:text-slate-300">
-                    Покупка
+                    {t.compareModal.buy}
                   </th>
                   {products.map((product) => (
                     <td key={product.id} className="border-t border-slate-200/80 px-4 py-4 dark:border-white/10">
@@ -502,7 +383,7 @@ export default function CompareModal({ products, onClose }: CompareModalProps) {
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1.5 font-semibold text-primary-700 underline-offset-4 hover:underline dark:text-accent-300"
                         >
-                          Маркетплейс
+                          {t.compareModal.marketplace}
                           <ExternalLink className="h-4 w-4" aria-hidden="true" />
                         </a>
                       ) : (
@@ -519,7 +400,7 @@ export default function CompareModal({ products, onClose }: CompareModalProps) {
             <div className="mt-6 rounded-2xl border border-slate-200/80 bg-white/50 p-5 dark:border-white/10 dark:bg-white/[0.03]">
               <h3 className="flex items-center gap-2 text-lg font-extrabold text-primary-900 dark:text-slate-50">
                 <Zap className="h-5 w-5 text-accent-600 dark:text-accent-300" aria-hidden="true" />
-                Сумісність і що перевірити
+                {t.compareModal.compatibility}
               </h3>
               <ul className="mt-3 space-y-2.5">
                 {compatibility.map((note, index) => (
@@ -536,10 +417,7 @@ export default function CompareModal({ products, onClose }: CompareModalProps) {
             </div>
           )}
 
-          <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">
-            Підсвічування показує найкраще значення у кожному рядку. Характеристики комплектуючих зчитані з назв і полів каталогу, тому перед покупкою
-            варто звірити їх з описом у магазині. Ціни орієнтовні.
-          </p>
+          <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">{t.compareModal.note}</p>
         </div>
       </div>
     </div>

@@ -1,47 +1,27 @@
 import { CalendarDays, CalendarClock, CalendarRange, Hourglass } from 'lucide-react';
 import Reveal from '@/components/persuade/Reveal';
+import { useLanguage } from '@/i18n/LanguageContext';
 
-const TIMELINE = [
-  {
-    icon: CalendarDays,
-    when: 'Через місяць',
-    text: 'Ті самі хвилини на кожен запуск і кожне відкриття. Звична незручність починає здаватися нормою.',
-  },
-  {
-    icon: CalendarRange,
-    when: 'Через пів року',
-    text: 'Більше вкладок, більше програм, більше очікування. Робота, навчання чи листування займають дедалі більше часу.',
-  },
-  {
-    icon: CalendarClock,
-    when: 'Через рік',
-    text: 'Система стає менш стабільною. Одна несподівана поломка може коштувати дорожче, ніж планове оновлення.',
-  },
-  {
-    icon: Hourglass,
-    when: 'Через два роки',
-    text: 'Коли ноутбук відмовить, доведеться терміново шукати заміну. Вибирати спокійно вже не вийде.',
-  },
-];
+const ICONS = [CalendarDays, CalendarRange, CalendarClock, Hourglass];
 
 export default function CostOfWaiting() {
+  const { t } = useLanguage();
+
   return (
     <section className="section-shell">
       <Reveal>
-        <p className="eyebrow">Ціна бездіяльності</p>
+        <p className="eyebrow">{t.costOfWaiting.eyebrow}</p>
         <h2 className="mt-4 max-w-3xl text-3xl font-extrabold text-primary-900 md:text-4xl dark:text-slate-50">
-          Що буде, якщо нічого не робити
+          {t.costOfWaiting.title}
         </h2>
-        <p className="mt-4 max-w-2xl text-slate-600 dark:text-slate-300">
-          Нічого поганого не станеться відразу. Просто щодня трохи більше часу йтиме на очікування.
-        </p>
+        <p className="mt-4 max-w-2xl text-slate-600 dark:text-slate-300">{t.costOfWaiting.intro}</p>
       </Reveal>
 
       <div className="relative mt-12">
         <div className="absolute left-0 right-0 top-7 hidden h-0.5 bg-gradient-to-r from-accent-400 via-primary-400 to-violet-400 md:block dark:from-accent-500/60 dark:via-primary-500/60 dark:to-violet-500/60" aria-hidden="true" />
         <ol className="grid gap-6 md:grid-cols-4">
-          {TIMELINE.map((step, index) => {
-            const Icon = step.icon;
+          {t.costOfWaiting.steps.map((step, index) => {
+            const Icon = ICONS[index] ?? CalendarDays;
             return (
               <li key={step.when}>
                 <Reveal delay={index * 120}>

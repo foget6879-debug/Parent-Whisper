@@ -23,7 +23,15 @@ export const CATEGORY_LABELS: Record<ProductCategory, string> = {
 };
 
 export function formatUah(value: number): string {
-  return `${value.toLocaleString('uk-UA')} грн`;
+  let lang: string | null = null;
+  try {
+    lang = window.localStorage.getItem('family-page-language');
+  } catch {
+    lang = null;
+  }
+  const locale = lang === 'en' ? 'en-US' : 'uk-UA';
+  const currency = lang === 'en' ? 'UAH' : 'грн';
+  return `${value.toLocaleString(locale)} ${currency}`;
 }
 
 export interface Product {

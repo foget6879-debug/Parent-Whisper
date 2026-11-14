@@ -2,6 +2,7 @@ import { useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import { ChevronsLeftRight } from 'lucide-react';
 import Reveal from '@/components/persuade/Reveal';
 import { SPEED_METRICS } from '@/data/upgradePlan';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { playSound } from '@/lib/sound';
 
 const MAX_SECONDS = 240;
@@ -9,19 +10,27 @@ const STEP = 5;
 const TICK_THRESHOLD = 8;
 
 function Panel({ variant }: { variant: 'before' | 'after' }) {
+  const { t } = useLanguage();
   const isBefore = variant === 'before';
+  const metricLabels = [t.beforeAfter.metrics.boot, t.beforeAfter.metrics.open, t.beforeAfter.metrics.browser];
+  const valueTexts = isBefore
+    ? [t.beforeAfter.values.bootBefore, t.beforeAfter.values.openBefore, t.beforeAfter.values.browserBefore]
+    : [t.beforeAfter.values.bootAfter, t.beforeAfter.values.openAfter, t.beforeAfter.values.browserAfter];
+
   return (
-    <div className={`h-full w-full p-6 md:p-10 ${isBefore ? 'bg-gradient-to-br from-slate-200 to-slate-300 text-slate-800 dark:from-slate-800 dark:to-slate-900 dark:text-slate-100' : 'bg-gradient-to-br from-success-100 via-accent-100 to-white text-success-700 dark:from-success-700/30 dark:via-primary-800 dark:to-primary-900 dark:text-success-100'}`}>
-      <p className="text-lg font-extrabold">{isBefore ? 'Зараз' : 'Після оновлення'}</p>
+    <div
+      className={`h-full w-full p-6 md:p-10 ${isBefore ? 'bg-gradient-to-br from-slate-200 to-slate-300 text-slate-800 dark:from-slate-800 dark:to-slate-900 dark:text-slate-100' : 'bg-gradient-to-br from-success-100 via-accent-100 to-white text-success-700 dark:from-success-700/30 dark:via-primary-800 dark:to-primary-900 dark:text-success-100'}`}
+    >
+      <p className="text-lg font-extrabold">{isBefore ? t.beforeAfter.before : t.beforeAfter.after}</p>
       <ul className="mt-6 space-y-6">
-        {SPEED_METRICS.map((metric) => {
+        {SPEED_METRICS.map((metric, idx) => {
           const data = isBefore ? metric.before : metric.after;
           const width = Math.max(6, Math.min(100, (data.seconds / MAX_SECONDS) * 100));
           return (
             <li key={metric.id}>
               <div className="flex items-baseline justify-between gap-4">
-                <span className="font-semibold">{metric.label}</span>
-                <span className="text-xl font-extrabold">{data.text}</span>
+                <span className="font-semibold">{metricLabels[idx]}</span>
+                <span className="text-xl font-extrabold">{valueTexts[idx]}</span>
               </div>
               <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
                 <div
@@ -33,12 +42,13 @@ function Panel({ variant }: { variant: 'before' | 'after' }) {
           );
         })}
       </ul>
-      <p className="mt-6 text-sm opacity-80">Менша довжина смуги означає швидше.</p>
+      <p className="mt-6 text-sm opacity-80">{t.beforeAfter.hint}</p>
     </div>
   );
 }
 
 export default function BeforeAfterSlider() {
+  const { t } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState(50);
   const dragging = useRef(false);
@@ -103,9 +113,9 @@ export default function BeforeAfterSlider() {
   return (
     <section className="section-shell">
       <Reveal>
-        <p className="eyebrow">До і після</p>
+        <p className="eyebrow">{t.beforeAfter.eyebrow}</p>
         <h2 className="mt-4 max-w-3xl text-3xl font-extrabold text-primary-900 md:text-4xl dark:text-slate-50">
-          Перетягніть посередину й подивіться самі
+          {t.beforeAfter.title}
         </h2>
       </Reveal>
 
@@ -128,7 +138,7 @@ export default function BeforeAfterSlider() {
           <div
             role="slider"
             tabIndex={0}
-            aria-label="Порівняння до і після оновлення"
+            aria-label={t.beforeAfter.aria}
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={Math.round(position)}

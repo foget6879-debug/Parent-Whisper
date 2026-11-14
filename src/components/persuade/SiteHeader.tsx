@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Laptop, Menu, Moon, Settings, Sun, Volume2, VolumeX, X } from 'lucide-react';
 import AmbienceControl, { type AmbienceControls } from '@/components/persuade/AmbienceControl';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
+import { useLanguage } from '@/i18n/LanguageContext';
 import type { Theme } from '@/hooks/useTheme';
 
 interface SiteHeaderProps {
@@ -13,14 +14,6 @@ interface SiteHeaderProps {
   onOpenSettings: () => void;
 }
 
-const NAV_ITEMS = [
-  { href: '#problem', label: 'Ситуація' },
-  { href: '#options', label: 'Варіанти' },
-  { href: '#compare', label: 'Порівняння' },
-  { href: '#questions', label: 'Питання' },
-  { href: '#conversation', label: 'Розмова' },
-];
-
 export default function SiteHeader({
   theme,
   soundEnabled,
@@ -29,9 +22,18 @@ export default function SiteHeader({
   onToggleSound,
   onOpenSettings,
 }: SiteHeaderProps) {
+  const { t } = useLanguage();
   const isDark = theme === 'dark';
   const [mobileOpen, setMobileOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const navItems = [
+    { href: '#problem', label: t.header.nav.problem },
+    { href: '#options', label: t.header.nav.options },
+    { href: '#compare', label: t.header.nav.compare },
+    { href: '#questions', label: t.header.nav.questions },
+    { href: '#conversation', label: t.header.nav.conversation },
+  ];
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
   useEscapeKey(closeMobile);
@@ -60,18 +62,18 @@ export default function SiteHeader({
               <Laptop className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
             </span>
             <span className="min-w-0 font-display text-sm font-extrabold leading-tight tracking-tight text-primary-900 sm:text-base dark:text-slate-50">
-              <span className="block truncate">Parent Whisper</span>
+              <span className="block truncate">{t.header.brand}</span>
               <span className="hidden text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 min-[380px]:block dark:text-slate-400">
-                a calm upgrade plan
+                {t.header.tagline}
               </span>
             </span>
           </a>
 
           <nav
-            aria-label="Розділи сторінки"
+            aria-label={t.header.navAria}
             className="hidden items-center gap-1 rounded-full border border-slate-200/70 bg-white/60 p-1 text-sm font-semibold md:flex dark:border-white/10 dark:bg-white/5"
           >
-            {NAV_ITEMS.map((item) => (
+            {navItems.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
@@ -87,20 +89,20 @@ export default function SiteHeader({
             <button
               type="button"
               onClick={onToggleSound}
-              aria-label={soundEnabled ? 'Вимкнути звуки інтерфейсу' : 'Увімкнути звуки інтерфейсу'}
-              title={soundEnabled ? 'Вимкнути звуки інтерфейсу' : 'Увімкнути звуки інтерфейсу'}
+              aria-label={soundEnabled ? t.header.soundOn : t.header.soundOff}
+              title={soundEnabled ? t.header.soundOn : t.header.soundOff}
               aria-pressed={soundEnabled}
               className={controlClass}
             >
               {soundEnabled ? <Volume2 className="h-5 w-5" aria-hidden="true" /> : <VolumeX className="h-5 w-5" aria-hidden="true" />}
             </button>
-            <button type="button" onClick={onOpenSettings} aria-label="Відкрити налаштування" className={controlClass}>
+            <button type="button" onClick={onOpenSettings} aria-label={t.header.settings} className={controlClass}>
               <Settings className="h-5 w-5" aria-hidden="true" />
             </button>
             <button
               type="button"
               onClick={onToggleTheme}
-              aria-label={isDark ? 'Увімкнути світлу тему' : 'Увімкнути темну тему'}
+              aria-label={isDark ? t.header.themeToLight : t.header.themeToDark}
               aria-pressed={isDark}
               className={controlClass}
             >
@@ -109,7 +111,7 @@ export default function SiteHeader({
             <button
               type="button"
               onClick={() => setMobileOpen((open) => !open)}
-              aria-label={mobileOpen ? 'Закрити меню' : 'Відкрити меню'}
+              aria-label={mobileOpen ? t.header.menuClose : t.header.menuOpen}
               aria-expanded={mobileOpen}
               aria-controls="mobile-nav"
               className={`${controlClass} md:hidden`}
@@ -122,10 +124,10 @@ export default function SiteHeader({
         {mobileOpen && (
           <nav
             id="mobile-nav"
-            aria-label="Розділи сторінки"
+            aria-label={t.header.navAria}
             className="animate-popover-in mt-3 grid gap-1 border-t border-slate-200/70 pt-3 md:hidden dark:border-white/10"
           >
-            {NAV_ITEMS.map((item) => (
+            {navItems.map((item) => (
               <a
                 key={item.href}
                 href={item.href}

@@ -1,6 +1,7 @@
 import { CircuitBoard, Check, Cpu, ExternalLink, Gauge, HardDrive, Laptop, MemoryStick, Monitor, Package, Plus, Tablet } from 'lucide-react';
 import { getPerformanceProfile } from '@/lib/performance';
-import { CATEGORY_LABELS, formatUah, type Product, type ProductCategory } from '@/lib/products';
+import { formatUah, type Product, type ProductCategory } from '@/lib/products';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 interface ProductCardProps {
   product: Product;
@@ -22,12 +23,13 @@ const CATEGORY_ICONS: Record<ProductCategory, typeof Laptop> = {
 };
 
 export default function ProductCard({ product, selected, disabled, onToggle, onRemove }: ProductCardProps) {
+  const { t } = useLanguage();
   const Icon = CATEGORY_ICONS[product.category];
   const performance = getPerformanceProfile(product);
   const specs = [
     product.cpu,
-    product.ramGb !== null ? `${product.ramGb} ГБ оперативної пам’яті` : null,
-    product.storageGb !== null ? `${product.storageGb} ГБ накопичувача` : null,
+    product.ramGb !== null ? `${product.ramGb} ${t.product.ram}` : null,
+    product.storageGb !== null ? `${product.storageGb} ${t.product.storage}` : null,
   ].filter((spec): spec is string => Boolean(spec));
 
   return (
@@ -43,7 +45,7 @@ export default function ProductCard({ product, selected, disabled, onToggle, onR
       <div className="flex items-center justify-between gap-3">
         <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary-700 to-primary-900 px-3 py-1.5 text-sm font-semibold text-white shadow-sm dark:from-primary-600 dark:to-primary-800">
           <Icon className="h-4 w-4" aria-hidden="true" />
-          {CATEGORY_LABELS[product.category]}
+          {t.categories[product.category]}
         </span>
         <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">{product.brand}</span>
       </div>
@@ -56,7 +58,7 @@ export default function ProductCard({ product, selected, disabled, onToggle, onR
           <div className="flex items-end justify-between gap-2 text-sm font-semibold">
             <span className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
               <Gauge className="h-4 w-4" aria-hidden="true" />
-              Потужність
+              {t.product.power}
               <span className="font-medium text-slate-400 dark:text-slate-500">· {performance.label}</span>
             </span>
             <span className="tabular-nums text-primary-800 dark:text-accent-300">
@@ -67,7 +69,7 @@ export default function ProductCard({ product, selected, disabled, onToggle, onR
           <div
             className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200/80 dark:bg-white/10"
             role="progressbar"
-            aria-label={`Потужність ${product.name}`}
+            aria-label={`${t.product.power} ${product.name}`}
             aria-valuenow={performance.score}
             aria-valuemin={0}
             aria-valuemax={100}
@@ -106,7 +108,7 @@ export default function ProductCard({ product, selected, disabled, onToggle, onR
           }`}
         >
           {selected ? <Check className="h-5 w-5" aria-hidden="true" /> : <Plus className="h-5 w-5" aria-hidden="true" />}
-          {selected ? 'Обрано' : 'Порівняти'}
+          {selected ? t.product.selected : t.product.compare}
         </button>
         {onRemove && (
           <button
@@ -114,7 +116,7 @@ export default function ProductCard({ product, selected, disabled, onToggle, onR
             onClick={() => onRemove(product.id)}
             className="rounded-full px-4 py-3 text-base font-semibold text-danger-700 transition-colors hover:bg-danger-100 dark:text-danger-100 dark:hover:bg-white/10"
           >
-            Видалити
+            {t.product.remove}
           </button>
         )}
         {product.marketplaceUrl && (
@@ -124,7 +126,7 @@ export default function ProductCard({ product, selected, disabled, onToggle, onR
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 rounded-full px-4 py-3 text-base font-semibold text-primary-800 transition-colors hover:bg-slate-100 dark:text-accent-300 dark:hover:bg-white/10"
           >
-            На маркетплейсі
+            {t.product.marketplace}
             <ExternalLink className="h-4 w-4" aria-hidden="true" />
           </a>
         )}

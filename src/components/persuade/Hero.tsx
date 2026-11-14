@@ -3,14 +3,28 @@ import Hero3D from '@/components/persuade/Hero3D';
 import RippleButton from '@/components/persuade/RippleButton';
 import Reveal from '@/components/persuade/Reveal';
 import { SPEED_METRICS, UPGRADE_PRICES } from '@/data/upgradePlan';
-
-const HERO_STATS = [
-  { icon: Wallet, value: `від ${UPGRADE_PRICES.minimal.toLocaleString('uk-UA')} грн`, label: 'старт оновлення' },
-  { icon: Timer, value: `${SPEED_METRICS[0].before.text} → ${SPEED_METRICS[0].after.text}`, label: 'запуск ноутбука' },
-  { icon: BadgeCheck, value: '0 ризику', label: 'порівнюємо перед покупкою' },
-];
+import { useLanguage, interpolate } from '@/i18n/LanguageContext';
 
 export default function Hero() {
+  const { t, language, formatNumber } = useLanguage();
+  const currency = t.currency;
+  const bootText = language === 'en' ? '35 sec' : SPEED_METRICS[0].after.text;
+  const bootBefore = language === 'en' ? '4 min' : SPEED_METRICS[0].before.text;
+
+  const heroStats = [
+    {
+      icon: Wallet,
+      value: `${t.hero.from} ${formatNumber(UPGRADE_PRICES.minimal)} ${currency}`,
+      label: t.hero.stats.start,
+    },
+    {
+      icon: Timer,
+      value: `${bootBefore} → ${bootText}`,
+      label: t.hero.stats.boot,
+    },
+    { icon: BadgeCheck, value: t.hero.riskValue, label: t.hero.stats.risk },
+  ];
+
   return (
     <section id="top" className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0 grid-bg" aria-hidden="true" />
@@ -20,25 +34,25 @@ export default function Hero() {
 
       <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 pb-16 pt-10 sm:gap-14 sm:px-6 sm:pb-20 sm:pt-14 md:grid-cols-[1.05fr_0.95fr] md:pb-28 md:pt-24">
         <Reveal>
-          <p className="eyebrow">Спокійна розмова для всієї родини</p>
+          <p className="eyebrow">{t.hero.eyebrow}</p>
           <h1 className="mt-6 font-display text-3xl font-extrabold leading-[1.08] text-primary-900 sm:text-4xl md:text-6xl dark:text-slate-50">
-            Мамо, тату, давайте поговоримо про <span className="text-gradient">швидший ноутбук</span>
+            {t.hero.titleBefore}
+            <span className="text-gradient">{t.hero.titleHighlight}</span>
           </h1>
           <p className="mt-5 max-w-xl text-lg text-slate-600 sm:mt-6 sm:text-xl dark:text-slate-300">
-            Невелике оновлення за {UPGRADE_PRICES.optimal.toLocaleString('uk-UA')} грн зробить щоденну роботу спокійнішою,
-            і ноутбук ще довго служитиме нам.
+            {interpolate(t.hero.description, { price: formatNumber(UPGRADE_PRICES.optimal) })}
           </p>
 
           <div className="mt-9 flex flex-wrap items-center gap-4">
-            <RippleButton href="#conversation">Поговорімо про це</RippleButton>
+            <RippleButton href="#conversation">{t.hero.ctaTalk}</RippleButton>
             <RippleButton href="#problem" variant="secondary">
-              Як це виглядає зараз
+              {t.hero.ctaSee}
               <ArrowDown className="h-5 w-5 motion-safe:animate-bounce" aria-hidden="true" />
             </RippleButton>
           </div>
 
           <dl className="mt-12 grid max-w-xl grid-cols-1 gap-3 sm:grid-cols-3">
-            {HERO_STATS.map((stat) => {
+            {heroStats.map((stat) => {
               const Icon = stat.icon;
               return (
                 <div
@@ -63,10 +77,10 @@ export default function Hero() {
               <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-accent-400/80 to-transparent" aria-hidden="true" />
               <Hero3D />
               <div className="mt-2 flex items-center justify-between gap-3 rounded-2xl border border-white/70 bg-white/70 px-4 py-3 dark:border-white/10 dark:bg-white/5">
-                <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">План оновлення 2026</span>
+                <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">{t.hero.plan}</span>
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-accent-800 dark:bg-accent-500/15 dark:text-accent-300">
                   <span className="h-1.5 w-1.5 rounded-full bg-accent-500" aria-hidden="true" />
-                  активно
+                  {t.hero.active}
                 </span>
               </div>
             </div>

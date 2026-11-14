@@ -1,59 +1,23 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import Reveal from '@/components/persuade/Reveal';
-
-interface Objection {
-  question: string;
-  answer: string;
-}
-
-const OBJECTIONS: Objection[] = [
-  {
-    question: 'А якщо і так працює?',
-    answer:
-      'Так, працює. Питання в тому, як довго і з яким настроєм. Ми не хочемо міняти те, що добре, а лише зробити щоденну роботу трохи спокійнішою.',
-  },
-  {
-    question: 'Це ж дорого',
-    answer:
-      'Розуміємо, кожна гривня на рахунку. Тому є мінімальний варіант, а ще ми можемо розбити витрати на частини або поїздити на б/в комплектуючих, якщо так буде спокійніше.',
-  },
-  {
-    question: 'Ти просто хочеш новеньке',
-    answer:
-      'Чесно: нового ноутбука мені не потрібно. Мені потрібно, щоб робота не забирала стільки часу. Тому пропонуємо найменший варіант, який це вирішує.',
-  },
-  {
-    question: 'Може, одразу купити новий?',
-    answer:
-      'Новий коштує в кілька разів більше, а старий доведеться кудись діти. Оновлення дає схожий результат за набагато меншу суму, і ми спокійно порівняємо це з цінами.',
-  },
-  {
-    question: 'А якщо не допоможе?',
-    answer:
-      'Тоді ми дізнаємося це за кілька днів: є можливість повернення в магазин за умовами продавця, і жодні гроші не будуть витрачені марно без нашого рішення.',
-  },
-  {
-    question: 'Я сам не розумію, як це налаштувати',
-    answer:
-      'Вам і не треба розбиратися. Я сам встановлю все, перенесу файли і перевірю, що ноутбук працює. Вам достатньо просто сісти поруч і подивитися.',
-  },
-];
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function Objections() {
+  const { t } = useLanguage();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
     <section id="questions" className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-20 md:py-28">
       <Reveal>
-        <p className="eyebrow">Відповіді на запитання</p>
+        <p className="eyebrow">{t.objections.eyebrow}</p>
         <h2 className="mt-4 text-3xl font-extrabold text-primary-900 md:text-4xl dark:text-slate-50">
-          «А якщо…» — і ми говоримо про це чесно
+          {t.objections.title}
         </h2>
       </Reveal>
 
       <div className="mt-10 space-y-4">
-        {OBJECTIONS.map((item, index) => {
+        {t.objections.items.map((item, index) => {
           const isOpen = openIndex === index;
           const panelId = `objection-panel-${index}`;
           const buttonId = `objection-button-${index}`;

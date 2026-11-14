@@ -5,7 +5,8 @@ import {
   powerComparisonLabel,
   type PerformanceProfile,
 } from '@/lib/performance';
-import { CATEGORY_LABELS, type Product } from '@/lib/products';
+import type { Product } from '@/lib/products';
+import { useLanguage, interpolate } from '@/i18n/LanguageContext';
 
 interface PowerCompareProps {
   products: Product[];
@@ -26,6 +27,7 @@ function scoreBadgeClass(score: number, highlighted: boolean): string {
 }
 
 export default function PowerCompare({ products, winnerIds }: PowerCompareProps) {
+  const { t } = useLanguage();
   const comparable = arePerformanceComparable(products);
   const entries: ScoredEntry[] = products.map((product) => ({
     product,
@@ -42,10 +44,10 @@ export default function PowerCompare({ products, winnerIds }: PowerCompareProps)
             <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-600 to-primary-900 text-accent-300 shadow-md shadow-primary-900/20 dark:from-primary-500 dark:to-primary-800">
               <Gauge className="h-5 w-5" aria-hidden="true" />
             </span>
-            Потужність
+            {t.power.title}
           </h3>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Індекс 0–100 з характеристик каталогу · {powerComparisonLabel(products)}
+            {interpolate(t.power.index, { label: powerComparisonLabel(products) })}
           </p>
         </div>
         <span
@@ -55,7 +57,7 @@ export default function PowerCompare({ products, winnerIds }: PowerCompareProps)
               : 'bg-warning-100 text-warning-800 ring-warning-200 dark:bg-warning-500/10 dark:text-warning-200 dark:ring-warning-400/20'
           }`}
         >
-          {comparable ? 'Порівняння напряму' : 'Різні класи — без переможця'}
+          {comparable ? t.power.direct : t.power.classes}
         </span>
       </div>
 
@@ -77,7 +79,7 @@ export default function PowerCompare({ products, winnerIds }: PowerCompareProps)
                     <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-100 text-xs font-extrabold text-primary-700 dark:bg-primary-500/20 dark:text-primary-200">
                       {index + 1}
                     </span>
-                    {CATEGORY_LABELS[product.category]}
+                    {t.categories[product.category]}
                   </p>
                   <p className="mt-1.5 line-clamp-2 text-base font-extrabold leading-snug text-slate-900 dark:text-slate-50">
                     {product.name}
@@ -86,7 +88,7 @@ export default function PowerCompare({ products, winnerIds }: PowerCompareProps)
                 {isWinner && (
                   <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-gradient-to-r from-accent-300 to-accent-500 px-2.5 py-1 text-sm font-bold text-primary-950 shadow-sm">
                     <Trophy className="h-3.5 w-3.5" aria-hidden="true" />
-                    Лідер
+                    {t.power.leader}
                   </span>
                 )}
               </div>
@@ -106,7 +108,7 @@ export default function PowerCompare({ products, winnerIds }: PowerCompareProps)
                   <div
                     className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200/80 dark:bg-white/10"
                     role="progressbar"
-                    aria-label={`Загальна потужність: ${product.name}`}
+                    aria-label={interpolate(t.power.overall, { name: product.name })}
                     aria-valuenow={profile.score}
                     aria-valuemin={0}
                     aria-valuemax={100}
@@ -149,9 +151,7 @@ export default function PowerCompare({ products, winnerIds }: PowerCompareProps)
                   </ul>
                 </>
               ) : (
-                <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
-                  Недостатньо даних для оцінки потужності.
-                </p>
+                <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">{t.power.noData}</p>
               )}
             </div>
           );
@@ -159,9 +159,7 @@ export default function PowerCompare({ products, winnerIds }: PowerCompareProps)
       </div>
 
       <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
-        {comparable
-          ? 'Індекс враховує процесор, графіку, пам’ять і накопичувач із вагами для пристроїв. Це орієнтовна оцінка на основі полів каталогу, а не результат бенчмарку.'
-          : 'Індекси різних класів (наприклад, відеокарти й накопичувача) не зіставні напряму — порівнюйте профілі всередині одного класу.'}
+        {comparable ? t.power.noteComparable : t.power.noteDifferent}
       </p>
     </section>
   );

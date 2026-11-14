@@ -1,5 +1,6 @@
 import { ArrowRight, X } from 'lucide-react';
 import type { Product } from '@/lib/products';
+import { useLanguage, interpolate } from '@/i18n/LanguageContext';
 
 interface CompareBarProps {
   products: Product[];
@@ -10,13 +11,17 @@ interface CompareBarProps {
 }
 
 export default function CompareBar({ products, leaving = false, onRemove, onCompare, onClear }: CompareBarProps) {
+  const { t } = useLanguage();
+
   return (
     <div
       className={`fixed inset-x-0 bottom-0 z-40 px-4 pb-4 md:px-6 ${leaving ? 'pointer-events-none animate-bar-down' : 'animate-bar-up'}`}
     >
       <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-3 rounded-3xl border border-white/80 bg-white/85 p-4 shadow-card backdrop-blur-xl md:flex-nowrap dark:border-white/10 dark:bg-primary-950/90 dark:shadow-card-dark">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-          <span className="mr-1 text-base font-bold text-slate-900 dark:text-slate-100">Обрано: {products.length} з 3</span>
+          <span className="mr-1 text-base font-bold text-slate-900 dark:text-slate-100">
+            {interpolate(t.compare.selected, { count: products.length })}
+          </span>
           {products.map((product) => (
             <span
               key={product.id}
@@ -26,7 +31,7 @@ export default function CompareBar({ products, leaving = false, onRemove, onComp
               <button
                 type="button"
                 onClick={() => onRemove(product.id)}
-                aria-label={`Прибрати ${product.name}`}
+                aria-label={interpolate(t.compare.remove, { name: product.name })}
                 className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-primary-100 dark:hover:bg-white/15"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
@@ -40,7 +45,7 @@ export default function CompareBar({ products, leaving = false, onRemove, onComp
             onClick={onClear}
             className="rounded-full px-4 py-3 text-base font-semibold text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/10"
           >
-            Очистити
+            {t.compare.clear}
           </button>
           <button
             type="button"
@@ -48,12 +53,12 @@ export default function CompareBar({ products, leaving = false, onRemove, onComp
             disabled={products.length < 2}
             className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-accent-300 to-accent-500 px-6 py-3 text-base font-extrabold text-primary-950 shadow-lg shadow-accent-500/25 transition-all hover:-translate-y-0.5 hover:from-accent-200 hover:to-accent-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Порівняти
+            {t.compare.compare}
             <ArrowRight className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
         {products.length < 2 && (
-          <p className="w-full text-sm text-slate-500 dark:text-slate-400">Оберіть ще хоча б один пристрій, щоб порівняти.</p>
+          <p className="w-full text-sm text-slate-500 dark:text-slate-400">{t.compare.needMore}</p>
         )}
       </div>
     </div>
