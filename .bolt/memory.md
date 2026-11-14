@@ -35,11 +35,10 @@
 - No additional UI packages beyond template defaults unless explicitly requested; Three.js is exception
 - Parent audience dictates accessible UX: large tap targets, clear navigation, plain language
 - Rozetka and similar Ukrainian marketplaces lack public APIs; prices entered manually
-- Supabase catalog DB extended with categories: GPUs, CPUs, RAM, storage, complete builds (plus existing laptops, desktops, tablets)
-- 2-3 placeholder examples per category with fictional prices; real data requires manual input
+- Product catalog is stored in browser localStorage and seeded with the catalog data on first load
+- Local catalog and custom products are browser-specific and do not sync across visitors or devices
 - Comparison table only meaningful within same category; cross-category disabled by design
-- Database env vars: `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
-- Supabase client, catalog logic, 3D module extracted into separate `@/` modules
+- Catalog logic and 3D module extracted into separate `@/` modules
 - Device card, selection panel, comparison table components created
 - Shared price formatting extracted to catalog utility
 - Build passes without errors; browser visual QA not yet performed
