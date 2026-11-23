@@ -76,7 +76,9 @@ function describeFailure(status: number, apiMessage: string | null): string {
       ? 'Insufficient OpenRouter balance or key limit exhausted.'
       : 'На рахунку OpenRouter немає коштів або ліміт ключа вичерпано.';
   if (status === 429)
-    return en ? 'Too many requests. Try again a bit later.' : 'Забагато запитів. Спробуйте трохи пізніше.';
+    return en
+      ? 'Rate limited by OpenRouter (too many requests). Wait a bit and try again, or try another model.'
+      : 'OpenRouter обмежив частоту запитів (429). Зачекайте трохи й спробуйте ще раз, або оберіть іншу модель.';
   return apiMessage ?? (en ? `Request failed (code ${status}).` : `Помилка під час запиту (код ${status}).`);
 }
 
@@ -115,6 +117,36 @@ export interface ChatResult {
   costUsd: number | null;
 }
 
+function delay(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(signal.reason instanceof Error ? signal.reason : new DOMException('Aborted', 'AbortError'));
+      return;
+    }
+    const onAbort = () => {
+      clearTimeout(timer);
+      const reason = signal?.reason;
+      reject(reason instanceof Error ? reason : new DOMException('Aborted', 'AbortError'));
+    };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener('abort', onAbort);
+      resolve();
+    }, ms);
+    signal?.addEventListener('abort', onAbort, { once: true });
+  });
+}
+
+function retryAfterMs(response: Response, attempt: number): number {
+  const header = response.headers.get('retry-after');
+  if (header) {
+    const seconds = Number(header);
+    if (Number.isFinite(seconds) && seconds >= 0) return Math.min(seconds * 1000, 15000);
+    const date = Date.parse(header);
+    if (Number.isFinite(date)) return Math.min(Math.max(date - Date.now(), 0), 15000);
+  }
+  return Math.min(1500 * 2 ** attempt, 8000);
+}
+
 export async function sendChatMessage(
   apiKey: string,
   model: string,
@@ -123,41 +155,52 @@ export async function sendChatMessage(
   pricing: ModelPricing | null,
   signal?: AbortSignal
 ): Promise<ChatResult> {
-  const response = await fetch(`${OPENROUTER_API_URL}/chat/completions`, {
-    method: 'POST',
-    signal,
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      max_tokens: maxTokens,
-    }),
-  });
+  const maxRetries = 2;
 
-  if (!response.ok) {
-    throw new Error(describeFailure(response.status, await readApiMessage(response)));
+  for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+    const response = await fetch(`${OPENROUTER_API_URL}/chat/completions`, {
+      method: 'POST',
+      signal,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        max_tokens: maxTokens,
+      }),
+    });
+
+    if (!response.ok) {
+      const apiMessage = await readApiMessage(response);
+      if (response.status === 429 && attempt < maxRetries) {
+        await delay(retryAfterMs(response, attempt), signal);
+        continue;
+      }
+      throw new Error(describeFailure(response.status, apiMessage));
+    }
+
+    const body = (await response.json()) as {
+      choices?: { message?: { content?: unknown } }[];
+      usage?: { prompt_tokens?: unknown; completion_tokens?: unknown };
+    };
+    const reply = body.choices?.[0]?.message?.content;
+    if (typeof reply !== 'string')
+      throw new Error(isEn() ? 'The model did not return a text reply.' : 'Модель не повернула текст відповіді.');
+
+    const promptTokens = parseCount(body.usage?.prompt_tokens);
+    const completionTokens = parseCount(body.usage?.completion_tokens);
+
+    return {
+      reply: reply.trim(),
+      promptTokens,
+      completionTokens,
+      costUsd: computeCost(pricing, promptTokens, completionTokens),
+    };
   }
 
-  const body = (await response.json()) as {
-    choices?: { message?: { content?: unknown } }[];
-    usage?: { prompt_tokens?: unknown; completion_tokens?: unknown };
-  };
-  const reply = body.choices?.[0]?.message?.content;
-  if (typeof reply !== 'string')
-    throw new Error(isEn() ? 'The model did not return a text reply.' : 'Модель не повернула текст відповіді.');
-
-  const promptTokens = parseCount(body.usage?.prompt_tokens);
-  const completionTokens = parseCount(body.usage?.completion_tokens);
-
-  return {
-    reply: reply.trim(),
-    promptTokens,
-    completionTokens,
-    costUsd: computeCost(pricing, promptTokens, completionTokens),
-  };
+  throw new Error(isEn() ? 'Too many requests. Try again a bit later.' : 'Забагато запитів. Спробуйте трохи пізніше.');
 }
 
 export async function sendTestMessage(
