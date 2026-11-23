@@ -103,11 +103,6 @@ export default function AiChat({ ai, onOpenSettings }: AiChatProps) {
     window.setTimeout(() => setKeySaved(false), 1800);
   };
 
-  const handleModelChange = (value: string) => {
-    setModelQuery(value);
-    if (value.trim()) saveSettings({ ...settings, model: value.trim() });
-  };
-
   const handleClear = () => {
     abortRef.current?.abort();
     setMessages([]);
@@ -254,30 +249,81 @@ export default function AiChat({ ai, onOpenSettings }: AiChatProps) {
                 </span>
               </label>
 
-              <label className="block">
+              <div className="block">
                 <span className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
                   <Bot className="h-4 w-4 text-primary-600 dark:text-cyan-300" aria-hidden="true" />
                   {t.aiChat.modelLabel}
                 </span>
                 <input
                   type="text"
-                  list="ai-chat-models"
                   value={modelQuery}
-                  onChange={(e) => handleModelChange(e.target.value)}
+                  onChange={(e) => setModelQuery(e.target.value)}
+                  onBlur={() => {
+                    const value = modelQuery.trim();
+                    if (value && value !== settings.model) saveSettings({ ...settings, model: value });
+                  }}
                   placeholder={t.aiChat.modelPlaceholder}
                   className="w-full rounded-xl border border-slate-300/80 bg-white/80 px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-200/40 dark:border-white/10 dark:bg-white/5 dark:text-slate-100 dark:focus:border-cyan-400/60 dark:focus:ring-cyan-500/10"
                 />
-                <datalist id="ai-chat-models">
-                  {availableModels.map((m) => (
-                    <option key={m.id} value={m.id}>{m.name}</option>
-                  ))}
-                </datalist>
-                <span className="mt-2 block text-xs text-slate-500 dark:text-slate-400">
-                  {models.status === 'loading' && '...'}
-                  {models.status === 'ready' && settings.model}
-                  {models.status === 'error' && models.message}
-                </span>
-              </label>
+
+                <div className="mt-2 overflow-hidden rounded-xl border border-slate-200/80 bg-white/70 dark:border-white/10 dark:bg-white/[0.03]">
+                  <div className="max-h-64 overflow-y-auto p-1.5">
+                    {models.status === 'loading' && (
+                      <p className="px-3 py-4 text-center text-sm text-slate-500 dark:text-slate-400">...</p>
+                    )}
+                    {models.status === 'error' && (
+                      <p className="px-3 py-4 text-center text-sm text-danger-600 dark:text-red-300">{models.message}</p>
+                    )}
+                    {models.status === 'ready' && availableModels.length === 0 && (
+                      <p className="px-3 py-4 text-center text-sm text-slate-500 dark:text-slate-400">—</p>
+                    )}
+                    {models.status === 'ready' &&
+                      availableModels.map((m) => {
+                        const selected = settings.model === m.id;
+                        const promptM = m.pricing ? (m.pricing.promptPerToken * 1_000_000).toFixed(2) : null;
+                        const completionM = m.pricing ? (m.pricing.completionPerToken * 1_000_000).toFixed(2) : null;
+                        return (
+                          <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => {
+                              saveSettings({ ...settings, model: m.id });
+                              setModelQuery(m.id);
+                              playSound('select');
+                            }}
+                            className={`flex w-full items-start justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
+                              selected
+                                ? 'bg-cyan-500/15 ring-1 ring-cyan-400/40 dark:bg-cyan-400/10'
+                                : 'hover:bg-slate-100/80 dark:hover:bg-white/5'
+                            }`}
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p className={`truncate text-sm font-semibold ${selected ? 'text-cyan-700 dark:text-cyan-200' : 'text-slate-800 dark:text-slate-100'}`}>
+                                {m.name}
+                              </p>
+                              <p className="truncate text-xs text-slate-500 dark:text-slate-400">{m.id}</p>
+                            </div>
+                            <div className="shrink-0 text-right">
+                              {promptM !== null && completionM !== null ? (
+                                <>
+                                  <p className="text-[11px] font-medium text-slate-600 dark:text-slate-300">${promptM} / ${completionM}</p>
+                                  <p className="text-[10px] text-slate-400 dark:text-slate-500">in/out · 1M</p>
+                                </>
+                              ) : (
+                                <p className="text-[11px] text-slate-400 dark:text-slate-500">—</p>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                  </div>
+                  {models.status === 'ready' && (
+                    <div className="border-t border-slate-200/70 px-3 py-2 text-[11px] text-slate-500 dark:border-white/10 dark:text-slate-400">
+                      {settings.model ? settings.model : t.aiChat.modelPlaceholder}
+                    </div>
+                  )}
+                </div>
+              </div>
 
               <button
                 type="button"

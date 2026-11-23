@@ -61,6 +61,7 @@ export default function SettingsModal({ onClose, background, onChangeBackground,
   const [draft, setDraft] = useState<AiSettings>(settings);
   const [status, setStatus] = useState<'idle' | 'saved' | 'cleared'>('idle');
   const [models, setModels] = useState<ModelsState>({ status: 'loading' });
+  const [modelQuery, setModelQuery] = useState(settings.model);
 
   useEscapeKey(requestClose);
 
@@ -78,6 +79,14 @@ export default function SettingsModal({ onClose, background, onChangeBackground,
 
   const selectedModel = models.status === 'ready' ? models.models.find((m) => m.id === draft.model) : undefined;
   const pricing = selectedModel?.pricing ?? null;
+  const filteredModels = useMemo(() => {
+    if (models.status !== 'ready') return [];
+    const q = modelQuery.trim().toLowerCase();
+    const list = q
+      ? models.models.filter((m) => m.id.toLowerCase().includes(q) || m.name.toLowerCase().includes(q))
+      : models.models;
+    return list.slice(0, 80);
+  }, [models, modelQuery]);
 
   const updateDraft = (patch: Partial<AiSettings>) => {
     setDraft((current) => ({ ...current, ...patch }));
@@ -253,23 +262,80 @@ export default function SettingsModal({ onClose, background, onChangeBackground,
             </label>
             <input
               id="ai-model"
-              list="ai-model-options"
+              type="text"
               autoComplete="off"
               spellCheck={false}
-              value={draft.model}
-              onChange={(event) => updateDraft({ model: event.target.value })}
+              value={modelQuery}
+              onChange={(event) => setModelQuery(event.target.value)}
+              onBlur={() => {
+                const value = modelQuery.trim();
+                if (value && value !== draft.model) updateDraft({ model: value });
+              }}
               placeholder={t.settings.modelPlaceholder}
               className={inputClass}
             />
-            <datalist id="ai-model-options">
-              {models.status === 'ready' &&
-                models.models.map((model) => <option key={model.id} value={model.id}>{model.name}</option>)}
-            </datalist>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400" aria-live="polite">
-              {models.status === 'loading' && t.settings.modelsLoading}
-              {models.status === 'error' && interpolate(t.settings.modelsError, { message: models.message })}
-              {models.status === 'ready' && interpolate(t.settings.modelsReady, { count: models.models.length })}
-            </p>
+
+            <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200/80 bg-white/70 dark:border-white/10 dark:bg-white/[0.03]">
+              <div className="max-h-72 overflow-y-auto p-1.5">
+                {models.status === 'loading' && (
+                  <p className="px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">{t.settings.modelsLoading}</p>
+                )}
+                {models.status === 'error' && (
+                  <p className="px-3 py-6 text-center text-sm text-danger-600 dark:text-red-300">
+                    {interpolate(t.settings.modelsError, { message: models.message })}
+                  </p>
+                )}
+                {models.status === 'ready' && filteredModels.length === 0 && (
+                  <p className="px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">—</p>
+                )}
+                {models.status === 'ready' &&
+                  filteredModels.map((model) => {
+                    const selected = draft.model === model.id;
+                    return (
+                      <button
+                        key={model.id}
+                        type="button"
+                        onClick={() => {
+                          updateDraft({ model: model.id });
+                          setModelQuery(model.id);
+                          playSound('select');
+                        }}
+                        className={`flex w-full items-start justify-between gap-3 rounded-xl px-3 py-3 text-left transition-colors ${
+                          selected
+                            ? 'bg-accent-400/15 ring-1 ring-accent-400/40 dark:bg-accent-400/10'
+                            : 'hover:bg-slate-100/80 dark:hover:bg-white/5'
+                        }`}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className={`truncate text-sm font-bold ${selected ? 'text-primary-900 dark:text-accent-200' : 'text-slate-800 dark:text-slate-100'}`}>
+                            {model.name}
+                          </p>
+                          <p className="truncate text-xs text-slate-500 dark:text-slate-400">{model.id}</p>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          {model.pricing ? (
+                            <>
+                              <p className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                                ${formatPerMillion(model.pricing.promptPerToken).replace('$', '')} / ${formatPerMillion(model.pricing.completionPerToken).replace('$', '')}
+                              </p>
+                              <p className="text-[11px] text-slate-400 dark:text-slate-500">in/out · 1M</p>
+                            </>
+                          ) : (
+                            <p className="text-xs text-slate-400 dark:text-slate-500">—</p>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+              </div>
+              {models.status === 'ready' && (
+                <div className="border-t border-slate-200/70 px-3 py-2 text-xs text-slate-500 dark:border-white/10 dark:text-slate-400">
+                  {interpolate(t.settings.modelsReady, { count: models.models.length })}
+                  {draft.model ? ` · ${draft.model}` : ''}
+                </div>
+              )}
+            </div>
+
             {pricing && (
               <div className="mt-3 rounded-xl bg-primary-50/70 p-4 text-base dark:bg-white/5">
                 <p className="text-slate-700 dark:text-slate-200">
