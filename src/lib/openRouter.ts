@@ -57,11 +57,27 @@ export async function fetchModels(signal?: AbortSignal): Promise<OpenRouterModel
     });
 }
 
+function isEn(): boolean {
+  try {
+    return window.localStorage.getItem('family-page-language') === 'en';
+  } catch {
+    return false;
+  }
+}
+
 function describeFailure(status: number, apiMessage: string | null): string {
-  if (status === 401) return 'Ключ не підходить. Перевірте, чи скопійовано його повністю.';
-  if (status === 402) return 'На рахунку OpenRouter немає коштів або ліміт ключа вичерпано.';
-  if (status === 429) return 'Забагато запитів. Спробуйте трохи пізніше.';
-  return apiMessage ?? `Помилка під час запиту (код ${status}).`;
+  const en = isEn();
+  if (status === 401)
+    return en
+      ? 'Invalid API key. Make sure you copied it in full.'
+      : 'Ключ не підходить. Перевірте, чи скопійовано його повністю.';
+  if (status === 402)
+    return en
+      ? 'Insufficient OpenRouter balance or key limit exhausted.'
+      : 'На рахунку OpenRouter немає коштів або ліміт ключа вичерпано.';
+  if (status === 429)
+    return en ? 'Too many requests. Try again a bit later.' : 'Забагато запитів. Спробуйте трохи пізніше.';
+  return apiMessage ?? (en ? `Request failed (code ${status}).` : `Помилка під час запиту (код ${status}).`);
 }
 
 async function readApiMessage(response: Response): Promise<string | null> {
@@ -87,21 +103,36 @@ export function computeCost(
   return promptTokens * pricing.promptPerToken + completionTokens * pricing.completionPerToken;
 }
 
-export async function sendTestMessage(
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface ChatResult {
+  reply: string;
+  promptTokens: number;
+  completionTokens: number;
+  costUsd: number | null;
+}
+
+export async function sendChatMessage(
   apiKey: string,
   model: string,
   maxTokens: number,
-  pricing: ModelPricing | null
-): Promise<TestResult> {
+  messages: ChatMessage[],
+  pricing: ModelPricing | null,
+  signal?: AbortSignal
+): Promise<ChatResult> {
   const response = await fetch(`${OPENROUTER_API_URL}/chat/completions`, {
     method: 'POST',
+    signal,
     headers: {
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       model,
-      messages: [{ role: 'user', content: 'Відповідь одним словом: ти працюєш?' }],
+      messages,
       max_tokens: maxTokens,
     }),
   });
@@ -115,7 +146,8 @@ export async function sendTestMessage(
     usage?: { prompt_tokens?: unknown; completion_tokens?: unknown };
   };
   const reply = body.choices?.[0]?.message?.content;
-  if (typeof reply !== 'string') throw new Error('Модель не повернула текст відповіді.');
+  if (typeof reply !== 'string')
+    throw new Error(isEn() ? 'The model did not return a text reply.' : 'Модель не повернула текст відповіді.');
 
   const promptTokens = parseCount(body.usage?.prompt_tokens);
   const completionTokens = parseCount(body.usage?.completion_tokens);
@@ -126,4 +158,20 @@ export async function sendTestMessage(
     completionTokens,
     costUsd: computeCost(pricing, promptTokens, completionTokens),
   };
+}
+
+export async function sendTestMessage(
+  apiKey: string,
+  model: string,
+  maxTokens: number,
+  pricing: ModelPricing | null
+): Promise<TestResult> {
+  const result = await sendChatMessage(
+    apiKey,
+    model,
+    maxTokens,
+    [{ role: 'user', content: 'Відповідь одним словом: ти працюєш?' }],
+    pricing
+  );
+  return result;
 }

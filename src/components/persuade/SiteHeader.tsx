@@ -31,6 +31,7 @@ export default function SiteHeader({
     { href: '#problem', label: t.header.nav.problem },
     { href: '#options', label: t.header.nav.options },
     { href: '#compare', label: t.header.nav.compare },
+    { href: '#ai-chat', label: t.header.nav.ai },
     { href: '#questions', label: t.header.nav.questions },
     { href: '#conversation', label: t.header.nav.conversation },
   ];

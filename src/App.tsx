@@ -10,6 +10,7 @@ import BenefitCalculator from '@/components/persuade/BenefitCalculator';
 import CostOfWaiting from '@/components/persuade/CostOfWaiting';
 import Options from '@/components/persuade/Options';
 import DeviceCompare from '@/components/persuade/DeviceCompare';
+import AiChat from '@/components/persuade/AiChat';
 import Objections from '@/components/persuade/Objections';
 import Guarantees from '@/components/persuade/Guarantees';
 import FinalCta from '@/components/persuade/FinalCta';
@@ -17,6 +18,7 @@ import { useBackground } from '@/hooks/useBackground';
 import { useTheme } from '@/hooks/useTheme';
 import { useSound } from '@/hooks/useSound';
 import { useAmbience } from '@/hooks/useAmbience';
+import { useAiSettings } from '@/hooks/useAiSettings';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { playSound } from '@/lib/sound';
 
@@ -26,6 +28,7 @@ function App() {
   const { enabled: soundEnabled, toggle: toggleSound } = useSound();
   const ambience = useAmbience();
   const { background, setBackground } = useBackground();
+  const ai = useAiSettings();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const closeSettings = useCallback(() => {
     setSettingsOpen(false);
@@ -70,6 +73,7 @@ function App() {
         <CostOfWaiting />
         <Options />
         <DeviceCompare />
+        <AiChat ai={ai} onOpenSettings={handleOpenSettings} />
         <Objections />
         <Guarantees />
         <FinalCta />
@@ -83,7 +87,12 @@ function App() {
         </div>
       </footer>
       {settingsOpen && (
-        <SettingsModal onClose={closeSettings} background={background} onChangeBackground={setBackground} />
+        <SettingsModal
+          onClose={closeSettings}
+          background={background}
+          onChangeBackground={setBackground}
+          ai={ai}
+        />
       )}
     </div>
   );

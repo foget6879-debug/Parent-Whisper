@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type AnimationEvent,
 import { Building2, Check, Globe, Image, KeyRound, Sparkles, Stars, X } from 'lucide-react';
 import ConnectionTest from '@/components/persuade/ConnectionTest';
 import { BACKGROUND_OPTIONS, type BackgroundId } from '@/hooks/useBackground';
-import { useAiSettings, type AiSettings } from '@/hooks/useAiSettings';
+import type { AiSettings } from '@/hooks/useAiSettings';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { useLanguage, interpolate } from '@/i18n/LanguageContext';
 import type { Language } from '@/i18n/translations';
@@ -14,6 +14,11 @@ interface SettingsModalProps {
   onClose: () => void;
   background: BackgroundId;
   onChangeBackground: (id: BackgroundId) => void;
+  ai: {
+    settings: AiSettings;
+    saveSettings: (next: AiSettings) => void;
+    clearApiKey: () => void;
+  };
 }
 
 const MAX_TOKENS_LIMIT = 8192;
@@ -41,7 +46,7 @@ const LANGUAGES: { id: Language; labelKey: 'languageUk' | 'languageEn' }[] = [
   { id: 'en', labelKey: 'languageEn' },
 ];
 
-export default function SettingsModal({ onClose, background, onChangeBackground }: SettingsModalProps) {
+export default function SettingsModal({ onClose, background, onChangeBackground, ai }: SettingsModalProps) {
   const { t, language, setLanguage } = useLanguage();
   const [leaving, setLeaving] = useState(false);
   const closedRef = useRef(false);
@@ -52,7 +57,7 @@ export default function SettingsModal({ onClose, background, onChangeBackground 
     onClose();
   };
 
-  const { settings, saveSettings, clearApiKey } = useAiSettings();
+  const { settings, saveSettings, clearApiKey } = ai;
   const [draft, setDraft] = useState<AiSettings>(settings);
   const [status, setStatus] = useState<'idle' | 'saved' | 'cleared'>('idle');
   const [models, setModels] = useState<ModelsState>({ status: 'loading' });
