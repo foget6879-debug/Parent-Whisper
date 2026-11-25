@@ -1036,6 +1036,77 @@
   animation: bar-down 0.26s cubic-bezier(0.4, 0, 1, 1) both;
 }
 
+/* AI chat ----------------------------------------------------------------- */
+
+@keyframes ai-msg-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes ai-msg-in-right {
+  from {
+    opacity: 0;
+    transform: translateY(10px) translateX(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateX(0) scale(1);
+  }
+}
+
+@keyframes ai-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes ai-soft-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 211, 238, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(34, 211, 238, 0.08);
+  }
+}
+
+.animate-ai-msg-in {
+  animation: ai-msg-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-ai-msg-in-right {
+  animation: ai-msg-in-right 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-ai-soft-pulse {
+  animation: ai-soft-pulse 2.4s ease-in-out infinite;
+}
+
+.ai-typing-dot {
+  animation: ai-dot 1.2s ease-in-out infinite;
+}
+
+.ai-typing-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.ai-typing-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
 /* Power / performance bars ------------------------------------------------ */
 
 @keyframes power-bar-grow {

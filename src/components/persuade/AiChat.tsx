@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
-import { Bot, KeyRound, Loader2, MessageSquarePlus, Send, Settings, ShieldCheck, Sparkles, User } from 'lucide-react';
+import { Bot, KeyRound, MessageSquarePlus, Send, Settings, ShieldCheck, Sparkles, User } from 'lucide-react';
 import Reveal from '@/components/persuade/Reveal';
 import type { AiSettings } from '@/hooks/useAiSettings';
 import { useLanguage, interpolate } from '@/i18n/LanguageContext';
@@ -370,7 +370,7 @@ export default function AiChat({ ai, onOpenSettings }: AiChatProps) {
             <div ref={listRef} className="relative flex-1 overflow-y-auto px-4 py-5 sm:px-5">
               {messages.length === 0 && !sending && (
                 <div className="flex h-full flex-col items-center justify-center text-center">
-                  <div className="relative">
+                  <div className="relative animate-pulse-soft">
                     <div className="absolute inset-0 rounded-full bg-cyan-400/20 blur-xl" aria-hidden="true" />
                     <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-400/30 bg-gradient-to-br from-cyan-400/10 to-primary-500/10 text-cyan-600 dark:text-cyan-300">
                       <Sparkles className="h-8 w-8" aria-hidden="true" />
@@ -385,7 +385,7 @@ export default function AiChat({ ai, onOpenSettings }: AiChatProps) {
                 {messages.map((msg) => {
                   const isUser = msg.role === 'user';
                   return (
-                    <div key={msg.id} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+                    <div key={msg.id} className={`flex ${isUser ? 'justify-end animate-ai-msg-in-right' : 'justify-start animate-ai-msg-in'}`}>
                       <div className={`flex max-w-[92%] gap-2.5 sm:max-w-[85%] ${isUser ? 'flex-row-reverse' : ''}`}>
                         <span
                           className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${
@@ -414,14 +414,18 @@ export default function AiChat({ ai, onOpenSettings }: AiChatProps) {
                 })}
 
                 {sending && (
-                  <div className="flex justify-start">
+                  <div className="flex justify-start animate-ai-msg-in">
                     <div className="flex max-w-[85%] gap-2.5">
                       <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400/20 to-violet-500/20 text-cyan-600 dark:text-cyan-300">
                         <Bot className="h-4 w-4" aria-hidden="true" />
                       </span>
                       <div className="rounded-2xl rounded-tl-md border border-slate-200/70 bg-white/80 px-4 py-3 text-sm text-slate-600 dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-300">
-                        <span className="inline-flex items-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                        <span className="inline-flex items-center gap-3">
+                          <span className="inline-flex items-center gap-1" aria-hidden="true">
+                            <span className="ai-typing-dot h-1.5 w-1.5 rounded-full bg-cyan-500 dark:bg-cyan-300" />
+                            <span className="ai-typing-dot h-1.5 w-1.5 rounded-full bg-cyan-500 dark:bg-cyan-300" />
+                            <span className="ai-typing-dot h-1.5 w-1.5 rounded-full bg-cyan-500 dark:bg-cyan-300" />
+                          </span>
                           {t.aiChat.sending}
                         </span>
                       </div>
