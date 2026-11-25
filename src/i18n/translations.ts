@@ -391,6 +391,10 @@ export const translations = {
       usage: 'Токени: {in}+{out}',
       cost: 'вартість {cost}',
       disclaimer: 'Відповіді AI можуть містити неточності. Перевіряйте важливу інформацію.',
+      historyTitle: 'Історія чатів',
+      historyHint: 'Зберігається до {max} чатів, старіші видаляються автоматично.',
+      deleteChat: 'Видалити чат',
+      noMessages: 'Порожній чат',
     },
     power: {
       title: 'Потужність',
@@ -862,6 +866,10 @@ export const translations = {
       usage: 'Tokens: {in}+{out}',
       cost: 'cost {cost}',
       disclaimer: 'AI responses may be inaccurate. Verify important information.',
+      historyTitle: 'Chat history',
+      historyHint: 'Up to {max} chats are saved; older ones are deleted automatically.',
+      deleteChat: 'Delete chat',
+      noMessages: 'Empty chat',
     },
     power: {
       title: 'Power',

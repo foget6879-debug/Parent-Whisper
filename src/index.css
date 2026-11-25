@@ -168,12 +168,12 @@
   }
 
   .glass {
-    @apply border border-white/70 bg-white/60 backdrop-blur-xl;
+    @apply border border-white/70 bg-white/85 md:bg-white/60 md:backdrop-blur-xl;
     box-shadow: 0 28px 70px -34px rgba(49, 46, 129, 0.5);
   }
 
   .dark .glass {
-    @apply border-white/10 bg-white/[0.045];
+    @apply border-white/10 bg-white/[0.07] md:bg-white/[0.045];
     box-shadow: 0 28px 70px -30px rgba(0, 0, 0, 0.8);
   }
 

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
-import { Bot, KeyRound, MessageSquarePlus, Send, Settings, ShieldCheck, Sparkles, User } from 'lucide-react';
+import { Bot, Clock3, KeyRound, MessageSquarePlus, Send, Settings, ShieldCheck, Sparkles, Trash2, User } from 'lucide-react';
 import Reveal from '@/components/persuade/Reveal';
 import type { AiSettings } from '@/hooks/useAiSettings';
+import { useChatHistory } from '@/hooks/useChatHistory';
 import { useLanguage, interpolate } from '@/i18n/LanguageContext';
 import { fetchModels, formatUsd, sendChatMessage, type ChatMessage, type OpenRouterModel } from '@/lib/openRouter';
 import { playSound } from '@/lib/sound';
@@ -26,14 +27,11 @@ type ModelsState =
   | { status: 'ready'; models: OpenRouterModel[] }
   | { status: 'error'; message: string };
 
-function uid(): string {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 export default function AiChat({ ai, onOpenSettings }: AiChatProps) {
   const { t } = useLanguage();
   const { settings, saveSettings } = ai;
-  const [messages, setMessages] = useState<DisplayMessage[]>([]);
+  const { sessions, activeId, activeSession, updateActiveMessages, newChat, selectChat, removeChat, maxChats } = useChatHistory();
+  const messages: DisplayMessage[] = (activeSession?.messages ?? []).map((m, i) => ({ ...m, id: `${activeId}-${i}` }));
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +50,14 @@ export default function AiChat({ ai, onOpenSettings }: AiChatProps) {
   useEffect(() => {
     setDraftKey(settings.apiKey);
   }, [settings.apiKey]);
+
+  useEffect(() => {
+    abortRef.current?.abort();
+    setSending(false);
+    setError(null);
+    setUsage(null);
+    setInput('');
+  }, [activeId]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -103,12 +109,10 @@ export default function AiChat({ ai, onOpenSettings }: AiChatProps) {
     window.setTimeout(() => setKeySaved(false), 1800);
   };
 
-  const handleClear = () => {
+  const handleNewChat = () => {
     abortRef.current?.abort();
-    setMessages([]);
-    setError(null);
-    setUsage(null);
     setSending(false);
+    newChat();
     playSound('click');
   };
 
@@ -118,9 +122,10 @@ export default function AiChat({ ai, onOpenSettings }: AiChatProps) {
     setError(null);
     setInput('');
 
-    const userMsg: DisplayMessage = { id: uid(), role: 'user', content };
-    const nextMessages = [...messages, userMsg];
-    setMessages(nextMessages);
+    const userMsg: ChatMessage = { role: 'user', content };
+    const baseMessages = activeSession?.messages ?? [];
+    const nextMessages = [...baseMessages, userMsg];
+    updateActiveMessages(nextMessages);
     setSending(true);
     playSound('select');
 
@@ -132,11 +137,11 @@ export default function AiChat({ ai, onOpenSettings }: AiChatProps) {
         settings.apiKey.trim(),
         settings.model.trim(),
         settings.maxTokens,
-        nextMessages.map((m) => ({ role: m.role, content: m.content })),
+        nextMessages,
         selectedModelInfo?.pricing ?? null,
         controller.signal
       );
-      setMessages((prev) => [...prev, { id: uid(), role: 'assistant', content: result.reply }]);
+      updateActiveMessages([...nextMessages, { role: 'assistant', content: result.reply }]);
       setUsage({ in: result.promptTokens, out: result.completionTokens, cost: result.costUsd });
       playSound('success');
     } catch (err: unknown) {
@@ -166,8 +171,8 @@ export default function AiChat({ ai, onOpenSettings }: AiChatProps) {
   return (
     <section id="ai-chat" className="section-shell relative">
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute -top-24 left-1/2 h-72 w-[40rem] -translate-x-1/2 rounded-full bg-cyan-400/10 blur-3xl dark:bg-cyan-500/10" />
-        <div className="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-violet-500/10 blur-3xl dark:bg-violet-500/15" />
+        <div className="absolute -top-24 left-1/2 hidden h-72 w-[40rem] -translate-x-1/2 rounded-full bg-cyan-400/10 blur-3xl md:block dark:bg-cyan-500/10" />
+        <div className="absolute bottom-0 right-0 hidden h-64 w-64 rounded-full bg-violet-500/10 blur-3xl md:block dark:bg-violet-500/15" />
       </div>
 
       <Reveal>
@@ -193,7 +198,7 @@ export default function AiChat({ ai, onOpenSettings }: AiChatProps) {
         <Reveal className="min-w-0">
           <div className="glass relative h-full overflow-hidden rounded-[2rem] p-6 md:p-7">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent" aria-hidden="true" />
-            <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-cyan-400/10 blur-2xl" aria-hidden="true" />
+            <div className="pointer-events-none absolute -right-16 -top-16 hidden h-40 w-40 rounded-full bg-cyan-400/10 blur-2xl md:block" aria-hidden="true" />
 
             <div className="flex items-center justify-between gap-3">
               <h3 className="flex items-center gap-2 text-xl font-extrabold text-primary-900 dark:text-slate-50">
@@ -334,6 +339,55 @@ export default function AiChat({ ai, onOpenSettings }: AiChatProps) {
                 {t.aiChat.openSettings}
               </button>
             </div>
+
+            <div className="mt-6 rounded-2xl border border-slate-200/70 bg-white/50 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+              <div className="flex items-center justify-between gap-2">
+                <p className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
+                  <Clock3 className="h-4 w-4 text-primary-600 dark:text-cyan-300" aria-hidden="true" />
+                  {t.aiChat.historyTitle}
+                </p>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">{sessions.length}/{maxChats}</span>
+              </div>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                {interpolate(t.aiChat.historyHint, { max: maxChats })}
+              </p>
+              <div className="mt-3 space-y-2">
+                {sessions.map((session) => {
+                  const active = session.id === activeId;
+                  return (
+                    <div
+                      key={session.id}
+                      className={`group flex items-center gap-2 rounded-xl border px-3 py-2 transition-colors ${
+                        active
+                          ? 'border-cyan-400/40 bg-cyan-500/10 dark:bg-cyan-400/10'
+                          : 'border-slate-200/70 bg-white/70 hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.02] dark:hover:bg-white/[0.05]'
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => selectChat(session.id)}
+                        className="min-w-0 flex-1 text-left"
+                      >
+                        <p className={`truncate text-sm font-semibold ${active ? 'text-cyan-700 dark:text-cyan-200' : 'text-slate-800 dark:text-slate-100'}`}>
+                          {session.title || t.aiChat.noMessages}
+                        </p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                          {session.messages.length} msg
+                        </p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeChat(session.id)}
+                        aria-label={t.aiChat.deleteChat}
+                        className="shrink-0 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-danger-100 hover:text-danger-700 dark:hover:bg-red-500/10 dark:hover:text-red-300"
+                      >
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </Reveal>
 
@@ -359,7 +413,7 @@ export default function AiChat({ ai, onOpenSettings }: AiChatProps) {
               </div>
               <button
                 type="button"
-                onClick={handleClear}
+                onClick={handleNewChat}
                 className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10"
               >
                 <MessageSquarePlus className="h-4 w-4" aria-hidden="true" />
@@ -371,7 +425,7 @@ export default function AiChat({ ai, onOpenSettings }: AiChatProps) {
               {messages.length === 0 && !sending && (
                 <div className="flex h-full flex-col items-center justify-center text-center">
                   <div className="relative animate-pulse-soft">
-                    <div className="absolute inset-0 rounded-full bg-cyan-400/20 blur-xl" aria-hidden="true" />
+                    <div className="absolute inset-0 hidden rounded-full bg-cyan-400/20 blur-xl md:block" aria-hidden="true" />
                     <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-400/30 bg-gradient-to-br from-cyan-400/10 to-primary-500/10 text-cyan-600 dark:text-cyan-300">
                       <Sparkles className="h-8 w-8" aria-hidden="true" />
                     </div>
